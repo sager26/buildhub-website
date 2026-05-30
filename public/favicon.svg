@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#000000"/>
+  <!-- top-left black quadrant -->
+  <path d="M4 4 C4 4 4 15 15 15 C15 15 15 4 4 4Z" fill="#1e1e1e"/>
+  <!-- top-right green -->
+  <rect x="17" y="4" width="11" height="11" rx="5" fill="#008100"/>
+  <!-- bottom-left black -->
+  <rect x="4" y="17" width="11" height="11" rx="5" fill="#1e1e1e"/>
+  <!-- bottom-right green quadrant -->
+  <path d="M17 17 C17 17 17 28 28 28 C28 28 28 17 17 17Z" fill="#008100"/>
+</svg>

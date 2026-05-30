@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #fff; display: flex; align-items: flex-start; justify-content: center; }
+  canvas { display: block; }
+  #status { position: fixed; top: 4px; left: 4px; font: 11px sans-serif; color: #999; }
+</style>
+</head>
+<body>
+<span id="status">loading…</span>
+<canvas id="c"></canvas>
+<script type="module">
+  // Use the pdfjs-dist legacy build (already served by Next.js from node_modules via public/)
+  // We'll load it dynamically from the CDN so we don't need to copy files
+  const { pdfjsLib } = globalThis;
+
+  async function loadAndRender() {
+    const params = new URLSearchParams(location.search);
+    const url = params.get('url');
+    const pageNum = parseInt(params.get('page') || '1');
+    const scale = parseFloat(params.get('scale') || '2');
+
+    if (!url) { document.getElementById('status').textContent = 'no url param'; return; }
+
+    // Dynamically import PDF.js from CDN
+    const pdfjs = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc =
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
+
+    document.getElementById('status').textContent = 'fetching pdf…';
+    const task = pdfjs.getDocument(url);
+    const pdf = await task.promise;
+    document.getElementById('status').textContent = 'rendering…';
+
+    const page = await pdf.getPage(pageNum);
+    const vp = page.getViewport({ scale });
+    const canvas = document.getElementById('c');
+    canvas.width = Math.round(vp.width);
+    canvas.height = Math.round(vp.height);
+    document.body.style.width = canvas.width + 'px';
+    document.body.style.height = canvas.height + 'px';
+
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    document.getElementById('status').textContent = 'done';
+    document.title = 'RENDER_DONE';
+  }
+
+  loadAndRender().catch(e => {
+    document.getElementById('status').textContent = 'ERROR: ' + e.message;
+    document.title = 'RENDER_ERROR';
+  });
+</script>
+</body>
+</html>
