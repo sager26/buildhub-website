@@ -351,6 +351,8 @@ const CARDS = [
 ];
 
 // ── Preview modal ─────────────────────────────────────────────────────────────
+// All interactive buttons are placed OUTSIDE the Canvas area to avoid
+// OrbitControls swallowing pointer events.
 function PreviewModal({
   index,
   onClose,
@@ -366,113 +368,133 @@ function PreviewModal({
 
   return (
     <motion.div
-      className="fixed inset-0 z-[400] flex flex-col md:flex-row bg-[#0c0b09]"
+      className="fixed inset-0 z-[400] flex flex-col bg-[#0c0b09]"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.28 }}
+      transition={{ duration: 0.25 }}
     >
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute right-5 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white"
-        aria-label="Close"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M2 2L14 14M14 2L2 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-        </svg>
-      </button>
-
-      {/* Prev / Next */}
-      <button
-        onClick={onPrev}
-        className="absolute left-4 top-1/2 z-10 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white"
-        aria-label="Previous"
-      >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path d="M11 4L5 9L11 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-      <button
-        onClick={onNext}
-        className="absolute right-4 top-1/2 z-10 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white"
-        aria-label="Next"
-      >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path d="M7 4L13 9L7 14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-
-      {/* 3D canvas — takes up most of the space */}
-      <div className="relative flex-1">
-        <Canvas
-          key={index}            // remounts canvas when index changes
-          dpr={[1, 1.8]}
-          camera={{ position: [0, 0.2, 3.6], fov: 50 }}
-          gl={{
-            antialias: true,
-            alpha: false,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 0.90,
-          }}
-          className="!absolute inset-0"
-          onCreated={({ scene }) => { scene.background = new THREE.Color("#0c0b09"); }}
-        >
-          <Suspense fallback={null}>
-            <PreviewScene index={index} />
-          </Suspense>
-        </Canvas>
-        {/* Drag hint */}
-        <p className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/40 backdrop-blur-sm">
-          Drag to rotate · {index + 1} / {CARDS.length}
-        </p>
-      </div>
-
-      {/* Info panel */}
-      <motion.div
-        key={`info-${index}`}
-        className="flex flex-col justify-center border-t border-white/10 p-8 md:w-[360px] md:border-l md:border-t-0 md:p-12"
-        initial={{ opacity: 0, x: 30 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.35, delay: 0.10 }}
-      >
-        <span className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-green">
-          {card.tag}
-        </span>
-        <h2 className="mt-3 font-display text-3xl font-bold text-white md:text-4xl">
-          {card.name}
-        </h2>
-        <p className="mt-4 text-sm leading-relaxed text-white/60">
-          {card.body}
-        </p>
-        <p className="mt-4 text-sm leading-relaxed text-white/40">
-          {card.detail}
-        </p>
-
-        {/* Progress dots */}
-        <div className="mt-8 flex gap-2">
-          {CARDS.map((_, i) => (
-            <span
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                i === index ? "w-6 bg-brand-green" : "w-1.5 bg-white/20"
-              }`}
-            />
-          ))}
+      {/* ── Top bar — buttons live here, never overlapping the canvas ── */}
+      <div className="relative z-10 flex shrink-0 items-center justify-between border-b border-white/10 px-5 py-3">
+        {/* Prev / counter / Next  */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onPrev}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white"
+            aria-label="Previous"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <span className="text-xs font-semibold tabular-nums text-white/40">
+            {index + 1} / {CARDS.length}
+          </span>
+          <button
+            onClick={onNext}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white"
+            aria-label="Next"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          {/* Product name in the bar */}
+          <span className="ml-2 font-display text-sm font-semibold text-white/60">
+            {card.name}
+          </span>
         </div>
 
-        <a
-          href="https://wa.me/962797435635"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-8 inline-flex items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#00b400]"
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white"
+          aria-label="Close"
         >
-          Get a Quote
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
           </svg>
-        </a>
-      </motion.div>
+        </button>
+      </div>
+
+      {/* ── Body: canvas (left) + info panel (right) ── */}
+      <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+
+        {/* 3D Canvas — pointer events are fully owned by OrbitControls here */}
+        <div className="relative min-h-0 flex-1">
+          <Canvas
+            key={index}
+            dpr={[1, 1.8]}
+            camera={{ position: [0, 0.2, 3.6], fov: 50 }}
+            gl={{
+              antialias: true,
+              alpha: false,
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 0.90,
+            }}
+            className="!absolute inset-0"
+            onCreated={({ scene }) => { scene.background = new THREE.Color("#0c0b09"); }}
+          >
+            <Suspense fallback={null}>
+              <PreviewScene index={index} />
+            </Suspense>
+          </Canvas>
+          {/* Drag hint — pointer-events:none, purely visual */}
+          <p className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/12 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/35 backdrop-blur-sm">
+            Drag to rotate
+          </p>
+        </div>
+
+        {/* Info panel — no canvas, all buttons work normally */}
+        <motion.div
+          key={`info-${index}`}
+          className="flex flex-col justify-center border-t border-white/10 px-8 py-8 md:w-[340px] md:border-l md:border-t-0 md:px-10 md:py-12"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.32, delay: 0.08 }}
+        >
+          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-brand-green">
+            {card.tag}
+          </span>
+          <h2 className="mt-3 font-display text-2xl font-bold text-white md:text-3xl">
+            {card.name}
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-white/60">
+            {card.body}
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-white/35">
+            {card.detail}
+          </p>
+
+          {/* Progress dots */}
+          <div className="mt-7 flex gap-2">
+            {CARDS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  if (i < index) onPrev();
+                  else if (i > index) onNext();
+                }}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === index ? "w-6 bg-brand-green" : "w-1.5 bg-white/20 hover:bg-white/40"
+                }`}
+              />
+            ))}
+          </div>
+
+          <a
+            href="https://wa.me/962797435635"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#00b400]"
+          >
+            Get a Quote
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </a>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
