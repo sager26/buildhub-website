@@ -87,34 +87,25 @@ export default function Hero3D() {
         gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         className="!absolute inset-0"
       >
-        <PerspectiveCamera makeDefault position={[0, 0.4, 7.6]} fov={42} />
+        <PerspectiveCamera makeDefault position={[0, 1.2, 9.8]} fov={40} />
 
-        <ambientLight intensity={0.45} />
-        <hemisphereLight
-          color="#ffffff"
-          groundColor="#1a1a1a"
-          intensity={0.5}
-        />
+        {/* Warm midday sun from upper-right */}
+        <ambientLight intensity={0.38} color="#f8f0e0" />
+        <hemisphereLight color="#fffbe8" groundColor="#1c1a16" intensity={0.55} />
         <directionalLight
-          position={[5, 8, 6]}
-          intensity={2.1}
+          position={[6, 10, 7]}
+          intensity={2.6}
+          color="#fff8ee"
           castShadow={shadows}
           shadow-mapSize={[1024, 1024]}
-          shadow-bias={-0.0004}
+          shadow-bias={-0.0003}
         />
-        {/* brand-green rim light */}
-        <pointLight
-          position={[-5, 1.5, -3]}
-          intensity={shadows ? 60 : 30}
-          color="#00b400"
-          distance={20}
-        />
-        <pointLight
-          position={[4, -2, 2]}
-          intensity={12}
-          color="#ffffff"
-          distance={16}
-        />
+        {/* Cool fill from left */}
+        <directionalLight position={[-5, 3, 4]} intensity={0.7} color="#d8e8ff" />
+        {/* Brand-green subtle rim from below-back */}
+        <pointLight position={[-3, -1, -4]} intensity={shadows ? 45 : 22} color="#00b400" distance={18} />
+        {/* Soft front fill */}
+        <pointLight position={[0, 2, 8]} intensity={0.8} color="#ffffff" distance={20} />
 
         <FacadeModel
           scrollRef={scrollRef}
