@@ -38,11 +38,11 @@ function buildShaft() {
 }
 
 function Column({ m }: { m: M }) {
-  const shaftGeo = useMemo(() => new THREE.LatheGeometry(buildShaft(), 48), []);
-  const N = 24;
+  const shaftGeo = useMemo(() => new THREE.LatheGeometry(buildShaft(), 96), []);
+  const N = 16;
   const flutes = useMemo(() => Array.from({ length: N }, (_, i) => {
     const a = (i / N) * Math.PI * 2;
-    return { x: Math.cos(a) * (COL_R + 0.004), z: Math.sin(a) * (COL_R + 0.004), a };
+    return { x: Math.cos(a) * (COL_R + 0.006), z: Math.sin(a) * (COL_R + 0.006), a };
   }), []);
 
   return (
@@ -61,10 +61,10 @@ function Column({ m }: { m: M }) {
       </mesh>
       {/* Shaft */}
       <mesh geometry={shaftGeo} material={m.stone} castShadow receiveShadow />
-      {/* Flute grooves */}
-      {flutes.map(({ x, z, a }, i) => (
-        <mesh key={i} position={[x, 0, z]} rotation={[0, -a, 0]} material={m.joint}>
-          <boxGeometry args={[0.016, COL_H - 0.5, 0.007]} />
+      {/* Flutes — smooth rounded vertical reeds, soft tone (no jagged edges) */}
+      {flutes.map(({ x, z }, i) => (
+        <mesh key={i} position={[x, 0, z]} material={m.mid}>
+          <cylinderGeometry args={[0.022, 0.018, COL_H - 0.5, 12]} />
         </mesh>
       ))}
       {/* Neck ring */}
@@ -89,8 +89,8 @@ function Column({ m }: { m: M }) {
 
 // ─── Voussoir arch — no gaps ──────────────────────────────────────────────
 function wedge(angle: number, step: number, Ri: number, Ro: number, d: number) {
-  // Use 0.500 so stones are flush with zero gap
-  const h = step * 0.500;
+  // Overlap slightly (0.520) so voussoirs read as one continuous, full arch
+  const h = step * 0.520;
   const a0 = angle - h, a1 = angle + h;
   const v = new Float32Array([
     Math.cos(a0)*Ri, Math.sin(a0)*Ri,  d/2,
@@ -110,46 +110,66 @@ function wedge(angle: number, step: number, Ri: number, Ro: number, d: number) {
 }
 
 function Arch({ m }: { m: M }) {
-  const Ro = 1.55, Ri = 1.02, D = 0.58, N = 15;
+  const Ro = 1.92, Ri = 1.20, D = 0.64, N = 23;
   const step = Math.PI / (N - 1);
   const stones = useMemo(() =>
     Array.from({ length: N }, (_, i) => ({
       geo: wedge(Math.PI * (1 - i / (N-1)), step, Ri, Ro, D),
-      isKey: i === Math.floor(N/2),
+      // alternate light/mid faces so the ring reads full and dimensional
+      mat: i % 2 === 0 ? "stone" : "light",
     })), []);
 
-  // Solid filled backing behind arch — closes every gap
+  // Solid filled tympanum behind arch — closes every gap, full surface
   const backGeo = useMemo(() => {
     const s = new THREE.Shape();
     s.moveTo(-Ro-0.1, -0.05);
     s.lineTo( Ro+0.1, -0.05);
     s.lineTo( Ro+0.1,  0);
-    for (let i = 0; i <= 40; i++) {
-      const a = (i/40) * Math.PI;
-      s.lineTo(Math.cos(a)*(Ro+0.08), Math.sin(a)*(Ro+0.08));
+    for (let i = 0; i <= 64; i++) {
+      const a = (i/64) * Math.PI;
+      s.lineTo(Math.cos(a)*(Ro+0.06), Math.sin(a)*(Ro+0.06));
     }
     s.lineTo(-Ro-0.1, 0);
     s.closePath();
-    return new THREE.ExtrudeGeometry(s, { depth: D*0.65, bevelEnabled: false });
+    return new THREE.ExtrudeGeometry(s, { depth: D*0.7, bevelEnabled: false });
+  }, []);
+
+  // Outer archivolt rim — a continuous smooth band hugging the voussoirs
+  const rimGeo = useMemo(() => {
+    const outer = new THREE.Shape();
+    for (let i = 0; i <= 80; i++) {
+      const a = (i/80) * Math.PI;
+      const fn = i === 0 ? "moveTo" : "lineTo";
+      outer[fn](Math.cos(a)*(Ro+0.14), Math.sin(a)*(Ro+0.14));
+    }
+    outer.lineTo(Ro+0.02, 0);
+    for (let i = 80; i >= 0; i--) {
+      const a = (i/80) * Math.PI;
+      outer.lineTo(Math.cos(a)*(Ro+0.02), Math.sin(a)*(Ro+0.02));
+    }
+    outer.closePath();
+    return new THREE.ExtrudeGeometry(outer, { depth: D*0.5, bevelEnabled: false });
   }, []);
 
   return (
     <group>
-      {/* Solid fill — zero transparency */}
-      <mesh geometry={backGeo} material={m.back} position={[0,0,-D*0.65-0.01]} />
-      {/* Impost blocks */}
+      {/* Solid tympanum fill — zero transparency */}
+      <mesh geometry={backGeo} material={m.back} position={[0,0,-D*0.7-0.01]} />
+      {/* Impost blocks the arch springs from */}
       {([-1,1] as const).map((s,i) => (
-        <mesh key={i} position={[s*(Ri+0.30), -0.14, 0]} castShadow material={m.mid}>
-          <boxGeometry args={[0.58, 0.38, D+0.10]} />
+        <mesh key={i} position={[s*(Ri+0.34), -0.16, 0]} castShadow material={m.mid}>
+          <boxGeometry args={[0.62, 0.42, D+0.12]} />
         </mesh>
       ))}
-      {/* Voussoir wedges — flush, no gaps */}
-      {stones.map(({ geo, isKey }, i) => (
-        <mesh key={i} geometry={geo} material={isKey ? m.dark : m.stone} castShadow />
+      {/* Voussoir ring — overlapping, full, no spokes */}
+      {stones.map(({ geo, mat }, i) => (
+        <mesh key={i} geometry={geo} material={mat === "light" ? m.light : m.stone} castShadow receiveShadow />
       ))}
-      {/* Keystone drop */}
-      <mesh position={[0, Ri-0.02, 0]} castShadow material={m.dark}>
-        <boxGeometry args={[0.36, 0.64, D+0.06]} />
+      {/* Outer archivolt moulding band */}
+      <mesh geometry={rimGeo} material={m.mid} position={[0,0,D*0.1]} castShadow />
+      {/* Keystone */}
+      <mesh position={[0, Ri+0.30, D*0.05]} castShadow material={m.light}>
+        <boxGeometry args={[0.40, 0.78, D+0.10]} />
       </mesh>
     </group>
   );
@@ -157,27 +177,27 @@ function Arch({ m }: { m: M }) {
 
 // ─── Logo frame — mounted in arch, spotlight target ───────────────────────
 function LogoFrame({ m }: { m: M }) {
-  const fw = 2.10, fh = 1.05, border = 0.10;
+  const fw = 1.90, fh = 1.10, border = 0.11;
 
   return (
-    <group position={[0, 0.30, 0.28]}>
+    <group position={[0, 0.10, 0.40]}>
       {/* Outer frame moulding (gold) */}
       <mesh castShadow material={m.gold}>
-        <boxGeometry args={[fw + border*2 + 0.04, fh + border*2 + 0.04, 0.05]} />
+        <boxGeometry args={[fw + border*2 + 0.04, fh + border*2 + 0.04, 0.06]} />
       </mesh>
       {/* Inner backing — black panel */}
-      <mesh position={[0, 0, 0.03]} material={m.frame}>
+      <mesh position={[0, 0, 0.04]} material={m.frame}>
         <boxGeometry args={[fw, fh, 0.04]} />
       </mesh>
       {/* Logo — rendered as HTML inside 3D canvas */}
       <Html
         center
-        position={[0, 0, 0.06]}
+        position={[0, 0, 0.08]}
         style={{ pointerEvents: "none", userSelect: "none" }}
         zIndexRange={[0, 0]}
       >
         <div style={{
-          width: "220px",
+          width: "200px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

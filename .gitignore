@@ -13,3 +13,5 @@ npm-debug.log*
 scripts/
 /public/screenshots/
 /.claude/
+
+.vercel

@@ -93,7 +93,7 @@ export default function Hero3D() {
         }}
       >
         {/* Camera — low angle, looking up slightly */}
-        <PerspectiveCamera makeDefault position={[0, -0.4, 10.2]} fov={46} />
+        <PerspectiveCamera makeDefault position={[0, 0.85, 9.7]} fov={47} />
 
         {/* ── Lighting ── */}
         {/* Warm ambient — cream stone base light */}
@@ -130,9 +130,9 @@ export default function Hero3D() {
           anglePower={4}
         />
 
-        {/* Subtle green ground accent — very low, just a hint */}
-        <pointLight position={[-2.2, -2.8, 1.6]} intensity={18} color="#00cc44" distance={10} decay={2} />
-        <pointLight position={[ 2.2, -2.8, 1.6]} intensity={18} color="#00cc44" distance={10} decay={2} />
+        {/* Warm cream fill from below — lifts the stone, no colour cast */}
+        <pointLight position={[-2.2, -2.4, 2.2]} intensity={14} color="#fff2dc" distance={11} decay={2} />
+        <pointLight position={[ 2.2, -2.4, 2.2]} intensity={14} color="#fff2dc" distance={11} decay={2} />
 
         <Floor />
         <FacadeModel scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
