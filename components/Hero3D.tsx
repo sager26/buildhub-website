@@ -2,7 +2,7 @@
 
 import { Component, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { ContactShadows, PerspectiveCamera, Environment } from "@react-three/drei";
+import { ContactShadows, PerspectiveCamera, SpotLight } from "@react-three/drei";
 import * as THREE from "three";
 import FacadeModel from "./FacadeModel";
 
@@ -19,32 +19,16 @@ class GLBoundary extends Component<
 
 function Fallback() {
   return (
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(0,129,0,0.18),transparent_65%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(0,129,0,0.15),transparent_65%)]" />
   );
 }
 
-/** Stone floor plane that receives shadows */
 function Floor() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -3.28, 0]} receiveShadow>
       <planeGeometry args={[40, 40]} />
-      <meshPhysicalMaterial
-        color="#928B7F"
-        roughness={0.88}
-        metalness={0.04}
-        clearcoat={0.08}
-        clearcoatRoughness={0.9}
-      />
-    </mesh>
-  );
-}
-
-/** Back wall / sky plane fills the void behind the facade */
-function BackWall() {
-  return (
-    <mesh position={[0, 2, -5.5]} receiveShadow>
-      <planeGeometry args={[24, 18]} />
-      <meshPhysicalMaterial color="#1a1914" roughness={1} metalness={0} />
+      <meshPhysicalMaterial color="#C8C0B0" roughness={0.90} metalness={0.02}
+        clearcoat={0.06} clearcoatRoughness={0.9} />
     </mesh>
   );
 }
@@ -65,7 +49,6 @@ export default function Hero3D() {
     apply();
     mqReduce.addEventListener("change", apply);
     mqSmall.addEventListener("change", apply);
-
     const onScroll = () => {
       scrollRef.current = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 1.6)));
     };
@@ -98,29 +81,29 @@ export default function Hero3D() {
         frameloop={reduced ? "demand" : "always"}
         gl={{
           antialias: true,
-          alpha: false,                                   // ← solid background
+          alpha: false,
           powerPreference: "high-performance",
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.82,
+          toneMappingExposure: 0.88,
         }}
         className="!absolute inset-0"
         onCreated={({ scene }) => {
-          scene.background = new THREE.Color("#0e0d0b");  // dark warm black
-          scene.fog = new THREE.FogExp2("#0e0d0b", 0.045); // atmospheric depth
+          scene.background = new THREE.Color("#0f0e0c");
+          scene.fog = new THREE.FogExp2("#0f0e0c", 0.038);
         }}
       >
-        {/* Camera — slight low angle, framing the full facade */}
-        <PerspectiveCamera makeDefault position={[0, -0.6, 10.5]} fov={44} />
+        {/* Camera — low angle, looking up slightly */}
+        <PerspectiveCamera makeDefault position={[0, -0.4, 10.2]} fov={46} />
 
         {/* ── Lighting ── */}
-        {/* Soft warm ambient */}
-        <ambientLight intensity={0.22} color="#f5ece0" />
+        {/* Warm ambient — cream stone base light */}
+        <ambientLight intensity={0.55} color="#f8f0e0" />
 
-        {/* Main sun — upper right, warm */}
+        {/* Main sun — upper right, warm daylight */}
         <directionalLight
-          position={[5, 9, 6]}
-          intensity={3.2}
-          color="#fff4e0"
+          position={[5, 10, 6]}
+          intensity={2.8}
+          color="#fff6e8"
           castShadow={shadows}
           shadow-mapSize={[2048, 2048]}
           shadow-bias={-0.0003}
@@ -128,38 +111,38 @@ export default function Hero3D() {
           shadow-camera-far={30}
           shadow-camera-left={-8}
           shadow-camera-right={8}
-          shadow-camera-top={10}
+          shadow-camera-top={12}
           shadow-camera-bottom={-5}
         />
-        {/* Cool sky fill — left */}
-        <directionalLight position={[-6, 4, 3]} intensity={0.55} color="#c8daf0" />
+        {/* Cool sky fill from left */}
+        <directionalLight position={[-5, 4, 3]} intensity={0.5} color="#d0e4ff" />
 
-        {/* Green architectural uplights — from ground level */}
-        <pointLight position={[-2.4, -2.6, 1.8]} intensity={110} color="#00cc44" distance={14} decay={2} />
-        <pointLight position={[ 2.4, -2.6, 1.8]} intensity={110} color="#00cc44" distance={14} decay={2} />
-        {/* Centre uplight on arch */}
-        <pointLight position={[0, -1.5, 2.0]} intensity={55} color="#00dd55" distance={10} decay={2} />
-
-        {/* Subtle rim from back-top for silhouette */}
-        <pointLight position={[0, 8, -4]} intensity={18} color="#ffe8c0" distance={20} decay={2} />
-
-        {/* ── Scene objects ── */}
-        <Environment preset="night" background={false} />
-        <BackWall />
-        <Floor />
-
-        <FacadeModel
-          scrollRef={scrollRef}
-          pointerRef={pointerRef}
-          quality={quality}
+        {/* ── Logo spotlight — warm focused beam on the centre frame ── */}
+        <SpotLight
+          position={[0, 5.5, 4.5]}
+          intensity={shadows ? 280 : 180}
+          angle={0.22}
+          penumbra={0.55}
+          color="#fff0cc"
+          distance={14}
+          castShadow={false}
+          attenuation={5}
+          anglePower={4}
         />
+
+        {/* Subtle green ground accent — very low, just a hint */}
+        <pointLight position={[-2.2, -2.8, 1.6]} intensity={18} color="#00cc44" distance={10} decay={2} />
+        <pointLight position={[ 2.2, -2.8, 1.6]} intensity={18} color="#00cc44" distance={10} decay={2} />
+
+        <Floor />
+        <FacadeModel scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
 
         {shadows && (
           <ContactShadows
             position={[0, -3.26, 0]}
-            opacity={0.7}
-            scale={16}
-            blur={2.2}
+            opacity={0.6}
+            scale={14}
+            blur={2.0}
             far={4}
             resolution={512}
             color="#000000"
