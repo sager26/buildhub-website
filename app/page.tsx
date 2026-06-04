@@ -5,6 +5,7 @@ import About from "@/components/About";
 import Marquee from "@/components/ui/Marquee";
 import WhyChoose from "@/components/WhyChoose";
 import Products from "@/components/Products";
+import ProductShowcase3D from "@/components/ProductShowcase3D";
 import ProductGallery from "@/components/ProductGallery";
 import Process from "@/components/Process";
 import Contact from "@/components/Contact";
@@ -22,6 +23,7 @@ export default function Home() {
         <Marquee items={PRODUCTS.map((p) => p.name)} />
         <WhyChoose />
         <Products />
+        <ProductShowcase3D />
         <ProductGallery />
         <Process />
         <Contact />
