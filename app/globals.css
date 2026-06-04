@@ -6,6 +6,8 @@
   --font-sans: "Inter", system-ui, sans-serif;
   --font-display: "Sora", system-ui, sans-serif;
   --green: #008100;
+  --page-bg: #fafaf9;
+  --page-fg: #111111;
 }
 
 * {
@@ -18,8 +20,8 @@ html {
 }
 
 body {
-  background: #000000;
-  color: #f4f4f4;
+  background: var(--page-bg);
+  color: var(--page-fg);
   font-family: var(--font-sans);
   overflow-x: hidden;
 }
@@ -51,13 +53,13 @@ html.lenis body {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 9px;
+  width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #efede8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2e2e2e;
+  background: #c8c5bf;
   border-radius: 999px;
 }
 ::-webkit-scrollbar-thumb:hover {
@@ -74,17 +76,25 @@ html.lenis body {
   .container-x {
     @apply mx-auto w-full max-w-7xl px-6 md:px-10;
   }
+  /* eyebrow: works on both dark and light */
   .eyebrow {
     @apply inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.25em] text-brand-green;
   }
+  /* glass — light-mode card surface */
   .glass {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(0, 0, 0, 0.07);
     backdrop-filter: blur(12px);
   }
+  /* card — solid warm-white card */
+  .card {
+    background: #ffffff;
+    border: 1px solid #e8e6e0;
+    border-radius: 1rem;
+  }
   .green-glow {
-    box-shadow: 0 0 0 1px rgba(0, 129, 0, 0.4),
-      0 8px 40px -8px rgba(0, 129, 0, 0.45);
+    box-shadow: 0 0 0 1px rgba(0, 129, 0, 0.35),
+      0 8px 40px -8px rgba(0, 129, 0, 0.4);
   }
   .mask-fade-b {
     -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);

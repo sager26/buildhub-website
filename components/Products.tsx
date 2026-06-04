@@ -13,33 +13,35 @@ export default function Products() {
 
   return (
     <>
-      <section id="products" className="container-x py-28 md:py-40">
-        <div className="mb-10 max-w-2xl">
-          <Reveal>
-            <span className="eyebrow">Our Products</span>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-6xl">
-              A complete facade system
-            </h2>
-          </Reveal>
-          <Reveal delay={0.16}>
-            <p className="mt-5 text-lg leading-relaxed text-white/60">
-              From insulating Foam Stone to bespoke columns and arches — every
-              element is custom-made for your project.
-            </p>
-          </Reveal>
-        </div>
+      <section id="products" className="bg-white py-24 md:py-36">
+        <div className="container-x">
+          <div className="mb-10 max-w-2xl">
+            <Reveal>
+              <span className="eyebrow">Our Products</span>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 md:text-6xl">
+                A complete facade system
+              </h2>
+            </Reveal>
+            <Reveal delay={0.16}>
+              <p className="mt-5 text-lg leading-relaxed text-gray-500">
+                From insulating Foam Stone to bespoke columns and arches — every
+                element is custom-made for your project.
+              </p>
+            </Reveal>
+          </div>
 
-        <div>
-          {PRODUCTS.map((p, i) => (
-            <ProductCategory
-              key={p.id}
-              product={p}
-              index={i}
-              onOpen={() => setLightbox(i)}
-            />
-          ))}
+          <div>
+            {PRODUCTS.map((p, i) => (
+              <ProductCategory
+                key={p.id}
+                product={p}
+                index={i}
+                onOpen={() => setLightbox(i)}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -54,7 +56,7 @@ export default function Products() {
             transition={{ duration: 0.25 }}
             onClick={() => setLightbox(null)}
           >
-            {/* Prev / Next */}
+            {/* Prev */}
             <button
               className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-white/10 p-3 text-white backdrop-blur-sm transition hover:bg-white/20"
               onClick={(e) => { e.stopPropagation(); setLightbox(l => l !== null ? (l - 1 + PRODUCTS.length) % PRODUCTS.length : 0); }}
@@ -62,6 +64,7 @@ export default function Products() {
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4L6 10L12 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
+            {/* Next */}
             <button
               className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full border border-white/20 bg-white/10 p-3 text-white backdrop-blur-sm transition hover:bg-white/20"
               onClick={(e) => { e.stopPropagation(); setLightbox(l => l !== null ? (l + 1) % PRODUCTS.length : 0); }}
@@ -69,7 +72,6 @@ export default function Products() {
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 4L14 10L8 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-
             {/* Close */}
             <button
               className="absolute right-5 top-5 z-10 rounded-full border border-white/20 bg-white/10 p-2.5 text-white backdrop-blur-sm transition hover:bg-white/20"
@@ -79,7 +81,6 @@ export default function Products() {
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 2L16 16M16 2L2 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
             </button>
 
-            {/* Image */}
             <motion.div
               key={lightbox}
               className="relative mx-auto flex max-h-[85vh] max-w-5xl flex-col items-center px-16"

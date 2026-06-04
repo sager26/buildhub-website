@@ -7,7 +7,8 @@ type Props = {
   children: ReactNode;
   href?: string;
   onClick?: () => void;
-  variant?: "primary" | "ghost";
+  /** primary = green CTA · ghost = white outline (dark bg) · ghost-light = dark outline (light bg) */
+  variant?: "primary" | "ghost" | "ghost-light";
   className?: string;
   external?: boolean;
   cursorLabel?: string;
@@ -45,6 +46,8 @@ export default function MagneticButton({
   const styles =
     variant === "primary"
       ? "bg-brand-green text-white hover:bg-brand-green-bright green-glow"
+      : variant === "ghost-light"
+      ? "border border-gray-300 text-gray-700 hover:border-brand-green hover:text-brand-green"
       : "border border-white/20 text-white hover:border-brand-green hover:text-brand-green";
 
   const inner = (

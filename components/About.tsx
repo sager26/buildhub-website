@@ -37,14 +37,14 @@ export default function About() {
   return (
     <>
       {/* ── About copy + stats ── */}
-      <section id="about" className="container-x relative py-28 md:py-40">
+      <section id="about" className="container-x relative py-24 md:py-36">
         <div className="grid gap-14 md:grid-cols-12">
           <div className="md:col-span-5">
             <Reveal>
               <span className="eyebrow">{ABOUT.eyebrow}</span>
             </Reveal>
             <motion.h2
-              className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-white md:text-5xl"
+              className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 md:text-5xl"
               variants={clipReveal}
               initial="hidden"
               whileInView="show"
@@ -53,25 +53,24 @@ export default function About() {
               {ABOUT.title}
             </motion.h2>
 
-            {/* What makes us different */}
             <Reveal delay={0.14}>
               <div className="mt-8 space-y-3 border-l-2 border-brand-green pl-5">
-                <p className="text-sm text-white/60">Local manufacturer — not an importer. Every piece is produced in Jordan.</p>
-                <p className="text-sm text-white/60">Works with architects, contractors, and villa owners directly.</p>
-                <p className="text-sm text-white/60">Custom orders accepted from single pieces to full project supply.</p>
+                <p className="text-sm text-gray-500">Local manufacturer — not an importer. Every piece is produced in Jordan.</p>
+                <p className="text-sm text-gray-500">Works with architects, contractors, and villa owners directly.</p>
+                <p className="text-sm text-gray-500">Custom orders accepted from single pieces to full project supply.</p>
               </div>
             </Reveal>
           </div>
 
           <div className="md:col-span-7">
             <Reveal delay={0.08}>
-              <p className="text-lg leading-relaxed text-white/70">
+              <p className="text-lg leading-relaxed text-gray-600">
                 {ABOUT.body}
               </p>
             </Reveal>
 
             <Reveal delay={0.14}>
-              <p className="mt-5 text-base leading-relaxed text-white/55">
+              <p className="mt-5 text-base leading-relaxed text-gray-500">
                 Unlike traditional stone, our Foam Stone system is manufactured
                 using Expanded Polystyrene (EPS) technology bonded with a
                 cement-polymer exterior coat. The result is an architectural
@@ -81,14 +80,14 @@ export default function About() {
             </Reveal>
 
             {/* Stats */}
-            <div className="mt-12 grid grid-cols-3 gap-6 border-t border-white/10 pt-10">
+            <div className="mt-12 grid grid-cols-3 gap-4 border-t border-gray-200 pt-10">
               {STATS.map((s, i) => (
                 <Reveal key={s.label} delay={0.1 + i * 0.1}>
                   <div>
-                    <div className="font-display text-4xl font-extrabold text-brand-green md:text-5xl">
+                    <div className="font-display text-3xl font-extrabold text-brand-green md:text-4xl">
                       <Counter value={s.value} suffix={s.suffix} />
                     </div>
-                    <p className="mt-2 text-xs leading-snug text-white/50 md:text-sm">
+                    <p className="mt-2 text-xs leading-snug text-gray-400 md:text-sm">
                       {s.label}
                     </p>
                   </div>
@@ -99,44 +98,46 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── Services grid ── */}
-      <section className="container-x pb-28 md:pb-40">
-        <div className="mb-12">
-          <Reveal>
-            <span className="eyebrow">What We Make</span>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <h2 className="mt-5 font-display text-4xl font-bold tracking-tight text-white md:text-5xl">
-              Full facade capability,
-              <br />
-              <span className="text-brand-green">under one roof</span>
-            </h2>
-          </Reveal>
-        </div>
+      {/* ── Services grid — slightly warm bg ── */}
+      <section className="bg-[#f4f3ef] py-24 md:py-36">
+        <div className="container-x">
+          <div className="mb-12">
+            <Reveal>
+              <span className="eyebrow">What We Make</span>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <h2 className="mt-5 font-display text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
+                Full facade capability,
+                <br />
+                <span className="text-brand-green">under one roof</span>
+              </h2>
+            </Reveal>
+          </div>
 
-        <motion.div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-          variants={stagger}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-60px" }}
-        >
-          {SERVICES.map((s, i) => (
-            <motion.div
-              key={s.title}
-              variants={fadeUp}
-              className="group glass rounded-2xl p-7 transition-colors duration-300 hover:border-brand-green/40"
-            >
-              <span className="font-display text-5xl font-extrabold text-white/8 transition-colors group-hover:text-brand-green/20">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <h3 className="mt-4 font-display text-lg font-semibold text-white">
-                {s.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/55">{s.body}</p>
-            </motion.div>
-          ))}
-        </motion.div>
+          <motion.div
+            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            variants={stagger}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-60px" }}
+          >
+            {SERVICES.map((s, i) => (
+              <motion.div
+                key={s.title}
+                variants={fadeUp}
+                className="group rounded-2xl border border-gray-200 bg-white p-7 shadow-sm transition-all duration-300 hover:border-brand-green/50 hover:shadow-md"
+              >
+                <span className="font-display text-5xl font-extrabold text-gray-100 transition-colors group-hover:text-brand-green/20">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="mt-4 font-display text-lg font-semibold text-gray-900">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-gray-500">{s.body}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </section>
     </>
   );

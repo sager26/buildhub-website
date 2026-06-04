@@ -1,7 +1,14 @@
 import Image from "next/image";
 
-// Real logo — dark-mode adapted via CSS filter (invert grays, keep hue)
-export default function Logo({ className = "" }: { className?: string }) {
+export default function Logo({
+  className = "",
+  variant = "light",
+}: {
+  className?: string;
+  /** "light" = white logo for dark backgrounds (inverted)
+   *  "dark"  = original colour logo for light backgrounds */
+  variant?: "light" | "dark";
+}) {
   return (
     <span className={`inline-flex items-center ${className}`}>
       <Image
@@ -11,7 +18,7 @@ export default function Logo({ className = "" }: { className?: string }) {
         height={44}
         priority
         style={{
-          filter: "invert(1) hue-rotate(180deg)",
+          filter: variant === "light" ? "invert(1) hue-rotate(180deg)" : "none",
           objectFit: "contain",
           height: "36px",
           width: "auto",

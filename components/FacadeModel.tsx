@@ -112,35 +112,43 @@ function wedge(angle: number, step: number, Ri: number, Ro: number, d: number) {
 function Arch({ m }: { m: M }) {
   const Ro = 1.92, Ri = 1.20, D = 0.64, N = 23;
   const step = Math.PI / (N - 1);
+  // Pier (leg) geometry — springs from impost down to ground
+  const LEG_W = 0.62, LEG_D = D + 0.12;
+  const LEG_H = 4.90;                          // tall enough to sink into steps
+  const LEG_CY = -0.37 - LEG_H / 2;           // center = just below impost bottom
+  const LEG_X  = Ri + 0.34;                    // x = impost x
+
   const stones = useMemo(() =>
     Array.from({ length: N }, (_, i) => ({
       geo: wedge(Math.PI * (1 - i / (N-1)), step, Ri, Ro, D),
-      // alternate light/mid faces so the ring reads full and dimensional
       mat: i % 2 === 0 ? "stone" : "light",
     })), []);
 
-  // Solid filled tympanum behind arch — closes every gap, full surface
+  // Full tympanum + door-opening backing — single extruded shape
   const backGeo = useMemo(() => {
     const s = new THREE.Shape();
-    s.moveTo(-Ro-0.1, -0.05);
-    s.lineTo( Ro+0.1, -0.05);
-    s.lineTo( Ro+0.1,  0);
+    // Door rectangle going down — full height of piers
+    s.moveTo(-LEG_X + LEG_W/2,      LEG_CY - LEG_H/2);
+    s.lineTo( LEG_X - LEG_W/2,      LEG_CY - LEG_H/2);
+    s.lineTo( LEG_X - LEG_W/2,      0);
+    // Semicircular tympanum
     for (let i = 0; i <= 64; i++) {
       const a = (i/64) * Math.PI;
       s.lineTo(Math.cos(a)*(Ro+0.06), Math.sin(a)*(Ro+0.06));
     }
-    s.lineTo(-Ro-0.1, 0);
+    s.lineTo(-(LEG_X - LEG_W/2),    0);
+    s.lineTo(-(LEG_X - LEG_W/2),    LEG_CY - LEG_H/2);
     s.closePath();
     return new THREE.ExtrudeGeometry(s, { depth: D*0.7, bevelEnabled: false });
   }, []);
 
-  // Outer archivolt rim — a continuous smooth band hugging the voussoirs
+  // Outer archivolt rim
   const rimGeo = useMemo(() => {
     const outer = new THREE.Shape();
     for (let i = 0; i <= 80; i++) {
       const a = (i/80) * Math.PI;
       const fn = i === 0 ? "moveTo" : "lineTo";
-      outer[fn](Math.cos(a)*(Ro+0.14), Math.sin(a)*(Ro+0.14));
+      (outer as any)[fn](Math.cos(a)*(Ro+0.14), Math.sin(a)*(Ro+0.14));
     }
     outer.lineTo(Ro+0.02, 0);
     for (let i = 80; i >= 0; i--) {
@@ -153,19 +161,27 @@ function Arch({ m }: { m: M }) {
 
   return (
     <group>
-      {/* Solid tympanum fill — zero transparency */}
+      {/* Full tympanum + door backing */}
       <mesh geometry={backGeo} material={m.back} position={[0,0,-D*0.7-0.01]} />
-      {/* Impost blocks the arch springs from */}
+
+      {/* Piers — stone legs extending to the ground */}
       {([-1,1] as const).map((s,i) => (
-        <mesh key={i} position={[s*(Ri+0.34), -0.16, 0]} castShadow material={m.mid}>
-          <boxGeometry args={[0.62, 0.42, D+0.12]} />
+        <mesh key={`pier${i}`} position={[s*LEG_X, LEG_CY, 0]} castShadow material={m.mid}>
+          <boxGeometry args={[LEG_W, LEG_H, LEG_D]} />
         </mesh>
       ))}
-      {/* Voussoir ring — overlapping, full, no spokes */}
+      {/* Impost blocks (spring point caps on top of piers) */}
+      {([-1,1] as const).map((s,i) => (
+        <mesh key={`imp${i}`} position={[s*LEG_X, -0.16, 0]} castShadow material={m.stone}>
+          <boxGeometry args={[LEG_W+0.10, 0.42, LEG_D+0.08]} />
+        </mesh>
+      ))}
+
+      {/* Voussoir ring */}
       {stones.map(({ geo, mat }, i) => (
         <mesh key={i} geometry={geo} material={mat === "light" ? m.light : m.stone} castShadow receiveShadow />
       ))}
-      {/* Outer archivolt moulding band */}
+      {/* Outer archivolt moulding */}
       <mesh geometry={rimGeo} material={m.mid} position={[0,0,D*0.1]} castShadow />
       {/* Keystone */}
       <mesh position={[0, Ri+0.30, D*0.05]} castShadow material={m.light}>
