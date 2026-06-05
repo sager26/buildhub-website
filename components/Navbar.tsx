@@ -11,7 +11,16 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    // Navbar goes white only once the first light section (#about) reaches the top —
+    // stays transparent/dark over the tall 3D showroom entrance.
+    const onScroll = () => {
+      const about = document.getElementById("about");
+      if (about) {
+        setScrolled(about.getBoundingClientRect().top <= 80);
+      } else {
+        setScrolled(window.scrollY > 60);
+      }
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);

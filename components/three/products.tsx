@@ -18,11 +18,13 @@ export type StoneMats = {
   foam:  THREE.MeshPhysicalMaterial;
   joint: THREE.MeshPhysicalMaterial;
   reed:  THREE.MeshPhysicalMaterial;
+  gold:  THREE.MeshPhysicalMaterial;
+  panel: THREE.MeshPhysicalMaterial;
 };
 
-export function useStoneMaterials(repeat = 1): StoneMats {
+export function useStoneMaterials(repeat = 1, size = 512): StoneMats {
   return useMemo(() => {
-    const maps = createLimestone({ base: "#F1EBDD", contrast: 0.17, size: 512, repeat });
+    const maps = createLimestone({ base: "#F1EBDD", contrast: 0.17, size, repeat });
     const mk = (color: string, o?: { rough?: number; cc?: number; nrm?: number; env?: number }) =>
       new THREE.MeshPhysicalMaterial({
         map: maps.map,
@@ -44,8 +46,10 @@ export function useStoneMaterials(repeat = 1): StoneMats {
       foam:  mk("#F2EEE4", { rough: 0.96, cc: 0.03, nrm: 0.35, env: 0.45 }),
       joint: mk("#8C8478", { rough: 1.0,  cc: 0.0,  nrm: 0.4,  env: 0.3 }),
       reed:  mk("#F7F1E2", { rough: 0.82, cc: 0.12, env: 0.75 }),
+      gold:  new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#C9A94C"), roughness: 0.42, metalness: 0.6, clearcoat: 0.4, envMapIntensity: 1.1 }),
+      panel: new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#171510"), roughness: 0.7, metalness: 0.1, envMapIntensity: 0.3 }),
     };
-  }, [repeat]);
+  }, [repeat, size]);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -259,18 +263,84 @@ export function ArchSection({ m, spin = true }: { m: StoneMats; spin?: boolean }
   );
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// 5 · Balustrade — turned balusters between rails
+// ──────────────────────────────────────────────────────────────────────────────
+export function Balustrade({ m, spin = true }: { m: StoneMats; spin?: boolean }) {
+  const ref = useRef<THREE.Group>(null);
+  const t = useRef(0.2);
+  const balusterGeo = useMemo(() => {
+    const prof: [number, number][] = [
+      [0.10, 0], [0.135, 0.05], [0.10, 0.12], [0.065, 0.22], [0.125, 0.33],
+      [0.10, 0.44], [0.06, 0.52], [0.095, 0.60], [0.07, 0.66], [0.10, 0.70],
+    ];
+    return new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 24);
+  }, []);
+  useFrame((_, dt) => {
+    if (!ref.current || !spin) return;
+    t.current += dt * 0.3;
+    ref.current.rotation.y = Math.sin(t.current * 0.5) * 0.55;
+  });
+  const xs = [-0.66, -0.33, 0, 0.33, 0.66];
+  return (
+    <group ref={ref} position={[0, -0.42, 0]}>
+      <mesh position={[0, -0.14, 0]} material={m.mid} castShadow><boxGeometry args={[1.85, 0.12, 0.40]} /></mesh>
+      <mesh position={[0, -0.04, 0]} material={m.stone} castShadow><boxGeometry args={[1.72, 0.10, 0.32]} /></mesh>
+      {xs.map((x, i) => (
+        <mesh key={i} geometry={balusterGeo} position={[x, 0.02, 0]} material={m.light} castShadow />
+      ))}
+      <mesh position={[0, 0.80, 0]} material={m.stone} castShadow><boxGeometry args={[1.72, 0.14, 0.34]} /></mesh>
+      <mesh position={[0, 0.90, 0]} material={m.light} castShadow><boxGeometry args={[1.85, 0.08, 0.42]} /></mesh>
+    </group>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// 6 · Window Surround — molded frame + sill + keystone
+// ──────────────────────────────────────────────────────────────────────────────
+export function WindowSurround({ m, spin = true }: { m: StoneMats; spin?: boolean }) {
+  const ref = useRef<THREE.Group>(null);
+  const t = useRef(-0.2);
+  useFrame((_, dt) => {
+    if (!ref.current || !spin) return;
+    t.current += dt * 0.28;
+    ref.current.rotation.y = Math.sin(t.current * 0.5) * 0.5;
+  });
+  const W = 1.0, H = 1.4, th = 0.18, d = 0.22;
+  return (
+    <group ref={ref} position={[0, 0, 0]}>
+      {/* dark opening */}
+      <mesh position={[0, 0, -0.06]} material={m.dark}><boxGeometry args={[W, H, 0.06]} /></mesh>
+      {/* outer reveal */}
+      <mesh position={[0, 0, -0.03]} material={m.mid}><boxGeometry args={[W + th * 2 + 0.06, H + th * 2 + 0.06, 0.05]} /></mesh>
+      {/* frame bars */}
+      <mesh position={[-(W / 2 + th / 2), 0.04, 0]} material={m.stone} castShadow><boxGeometry args={[th, H + th * 2, d]} /></mesh>
+      <mesh position={[ (W / 2 + th / 2), 0.04, 0]} material={m.stone} castShadow><boxGeometry args={[th, H + th * 2, d]} /></mesh>
+      <mesh position={[0, (H / 2 + th / 2), 0]} material={m.stone} castShadow><boxGeometry args={[W + th * 2, th, d]} /></mesh>
+      {/* sill */}
+      <mesh position={[0, -(H / 2 + th / 2), 0.03]} material={m.mid} castShadow><boxGeometry args={[W + th * 2 + 0.18, th + 0.06, d + 0.12]} /></mesh>
+      {/* keystone */}
+      <mesh position={[0, (H / 2 + th), 0.05]} material={m.light} castShadow><boxGeometry args={[0.24, 0.32, d + 0.06]} /></mesh>
+    </group>
+  );
+}
+
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 export function ProductModel({ index, m, spin = true }: { index: number; m: StoneMats; spin?: boolean }) {
-  if (index === 0) return <FoamStonePanel m={m} spin={spin} />;
-  if (index === 1) return <CorniceModel   m={m} spin={spin} />;
-  if (index === 2) return <ColumnCapital  m={m} spin={spin} />;
-  if (index === 3) return <ArchSection    m={m} spin={spin} />;
+  if (index === 0) return <FoamStonePanel  m={m} spin={spin} />;
+  if (index === 1) return <CorniceModel    m={m} spin={spin} />;
+  if (index === 2) return <ColumnCapital   m={m} spin={spin} />;
+  if (index === 3) return <ArchSection     m={m} spin={spin} />;
+  if (index === 4) return <Balustrade      m={m} spin={spin} />;
+  if (index === 5) return <WindowSurround  m={m} spin={spin} />;
   return null;
 }
 
 export const PRODUCT_META = [
-  { n: "01", name: "Foam Stone",            tag: "Wall Cladding",   detail: "EPS core + cement-polymer stone coat. 80% lighter than natural stone — no extra structural load, fast to install." },
-  { n: "02", name: "Decorative Moldings",   tag: "Cornices & Trim", detail: "Cornices, window surrounds, sills and string-courses cut to exact dimensions. Pre-finished, ready to fix." },
-  { n: "03", name: "Columns & Capitals",    tag: "Structural Decor",detail: "Full column kits — reeded shaft, Doric to Corinthian capital, base & plinth. Stacks and bonds on site." },
-  { n: "04", name: "Architectural Arches",  tag: "Entry Systems",   detail: "Semicircular & segmental arch kits with precision-cut voussoirs, keystone, impost blocks & archivolt." },
+  { n: "01", name: "Foam Stone",           tag: "Wall Cladding",    detail: "EPS core + cement-polymer stone coat. 80% lighter than natural stone — no extra structural load, fast to install." },
+  { n: "02", name: "Decorative Moldings",  tag: "Cornices & Trim",  detail: "Cornices, window surrounds, sills and string-courses cut to exact dimensions. Pre-finished, ready to fix." },
+  { n: "03", name: "Columns & Capitals",   tag: "Structural Decor", detail: "Full column kits — reeded shaft, Doric to Corinthian capital, base & plinth. Stacks and bonds on site." },
+  { n: "04", name: "Architectural Arches", tag: "Entry Systems",    detail: "Semicircular & segmental arch kits with precision-cut voussoirs, keystone, impost blocks & archivolt." },
+  { n: "05", name: "Balustrades",          tag: "Railings",         detail: "Turned baluster railings for balconies, terraces and staircases. Posts, rails and balusters supplied as a kit." },
+  { n: "06", name: "Window Surrounds",     tag: "Facade Trim",      detail: "Molded window & door surrounds with sill, jambs and keystone. Frames any opening with classical detail." },
 ];
