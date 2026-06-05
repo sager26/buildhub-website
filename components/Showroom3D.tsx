@@ -35,15 +35,20 @@ type Quality = "high" | "low";
 // ── Entrance portal with the BuildHub logo plaque ─────────────────────────────────
 function LogoPlaque({ m }: { m: StoneMats }) {
   const tex = useTexture("/logo-transparent.png");
+  // logo PNG is 724×128 → aspect 5.656:1 (wide banner). Match it exactly so it
+  // isn't stretched.
+  const LOGO_ASPECT = 724 / 128;
+  const LOGO_W = 2.55;
+  const LOGO_H = LOGO_W / LOGO_ASPECT;
   return (
-    <group position={[0, 3.45, 0.2]}>
+    <group position={[0, 3.28, 0.25]}>
       {/* gold frame */}
-      <mesh material={m.gold} castShadow><boxGeometry args={[2.5, 1.05, 0.10]} /></mesh>
+      <mesh material={m.gold} castShadow><boxGeometry args={[3.0, 0.92, 0.10]} /></mesh>
       {/* cream plaque */}
-      <mesh position={[0, 0, 0.06]} material={m.light}><boxGeometry args={[2.3, 0.88, 0.06]} /></mesh>
-      {/* logo (dark on cream) */}
+      <mesh position={[0, 0, 0.06]} material={m.light}><boxGeometry args={[2.8, 0.70, 0.06]} /></mesh>
+      {/* logo — true colours on cream, correct aspect ratio */}
       <mesh position={[0, 0, 0.10]}>
-        <planeGeometry args={[1.95, 0.55]} />
+        <planeGeometry args={[LOGO_W, LOGO_H]} />
         <meshBasicMaterial map={tex} transparent toneMapped={false} />
       </mesh>
     </group>
@@ -204,8 +209,8 @@ function CameraRig({
       lookX = PEDESTALS[nearest].x * 0.42;
       lookY = 0.85;
     } else {
-      // approaching the portal — look at the logo plaque
-      lookY = 1.6;
+      // approaching the portal — look up toward the logo plaque
+      lookY = 1.95;
     }
 
     if (activeIdx !== lastActive.current) {
