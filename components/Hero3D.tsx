@@ -1,8 +1,8 @@
 "use client";
 
-import { Component, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Component, ReactNode, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { ContactShadows, PerspectiveCamera, SpotLight } from "@react-three/drei";
+import { ContactShadows, Environment, PerspectiveCamera, SpotLight } from "@react-three/drei";
 import * as THREE from "three";
 import FacadeModel from "./FacadeModel";
 
@@ -134,8 +134,15 @@ export default function Hero3D() {
         <pointLight position={[-2.2, -2.4, 2.2]} intensity={14} color="#fff2dc" distance={11} decay={2} />
         <pointLight position={[ 2.2, -2.4, 2.2]} intensity={14} color="#fff2dc" distance={11} decay={2} />
 
+        {/* Environment for realistic stone reflections */}
+        <Suspense fallback={null}>
+          <Environment preset="apartment" environmentIntensity={0.3} />
+        </Suspense>
+
         <Floor />
-        <FacadeModel scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
+        <Suspense fallback={null}>
+          <FacadeModel scrollRef={scrollRef} pointerRef={pointerRef} quality={quality} />
+        </Suspense>
 
         {shadows && (
           <ContactShadows

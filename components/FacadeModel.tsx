@@ -4,26 +4,39 @@ import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
+import { createLimestone } from "./three/stone";
 
-// ─── Material palette ─────────────────────────────────────────────────────────
-function mkMat(color: string, rough = 0.84, cc = 0.08) {
+// ─── Material palette — photoreal limestone (shared texture, tinted per tone) ───
+function plainMat(color: string, rough = 0.84, cc = 0.08) {
   return new THREE.MeshPhysicalMaterial({
     color, roughness: rough, metalness: 0,
     clearcoat: cc, clearcoatRoughness: 0.88,
   });
 }
 function useMats() {
-  return useMemo(() => ({
-    stone:  mkMat("#EAE3D1", 0.82, 0.10),  // main limestone face
-    light:  mkMat("#F3EDE0", 0.74, 0.14),  // sun-catch surface
-    mid:    mkMat("#D6CFBD", 0.88, 0.05),  // side / shadow face
-    dark:   mkMat("#B0A99C", 0.95, 0.02),  // deep recesses / joints
-    shadow: mkMat("#8A8480", 1.00, 0.00),  // mortar-joint colour
-    back:   mkMat("#161410", 1.00, 0.00),  // dark void / backing
-    frame:  mkMat("#1A1814", 1.00, 0.00),  // logo backing
-    gold:   mkMat("#C9A94C", 0.44, 0.40),  // frame moulding
-    reed:   mkMat("#F0EAD8", 0.72, 0.16),  // reed highlight (lighter)
-  }), []);
+  return useMemo(() => {
+    const maps = createLimestone({ base: "#F1EBDD", contrast: 0.17, size: 512, repeat: 1 });
+    const tex = (color: string, o?: { rough?: number; cc?: number; nrm?: number; env?: number }) =>
+      new THREE.MeshPhysicalMaterial({
+        map: maps.map, normalMap: maps.normalMap, roughnessMap: maps.roughnessMap,
+        color: new THREE.Color(color),
+        roughness: o?.rough ?? 0.90, metalness: 0,
+        clearcoat: o?.cc ?? 0.06, clearcoatRoughness: 0.85,
+        normalScale: new THREE.Vector2(o?.nrm ?? 0.5, o?.nrm ?? 0.5),
+        envMapIntensity: o?.env ?? 0.55,
+      });
+    return {
+      stone:  tex("#ECE4D2", { rough: 0.90, cc: 0.08, env: 0.6 }),  // main limestone face
+      light:  tex("#FBF6EC", { rough: 0.82, cc: 0.12, env: 0.8 }),  // sun-catch surface
+      mid:    tex("#D6CDB8", { rough: 0.94, cc: 0.04, env: 0.5 }),  // side / shadow face
+      dark:   tex("#AFA690", { rough: 0.97, cc: 0.02, env: 0.4 }),  // deep recesses
+      shadow: plainMat("#8A8480", 1.00, 0.00),                       // mortar joints
+      back:   plainMat("#161410", 1.00, 0.00),                       // dark void
+      frame:  plainMat("#1A1814", 1.00, 0.00),                       // logo backing
+      gold:   plainMat("#C9A94C", 0.44, 0.40),                       // frame moulding
+      reed:   tex("#F7F1E2", { rough: 0.80, cc: 0.14, env: 0.75 }),  // reed highlight
+    };
+  }, []);
 }
 type M = ReturnType<typeof useMats>;
 
