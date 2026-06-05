@@ -35,19 +35,21 @@ type Quality = "high" | "low";
 // ── Entrance portal with the BuildHub logo plaque ─────────────────────────────────
 function LogoPlaque({ m }: { m: StoneMats }) {
   const tex = useTexture("/logo-transparent.png");
-  // logo PNG is 724×128 → aspect 5.656:1 (wide banner). Match it exactly so it
-  // isn't stretched.
+  // logo PNG is 724×128 → aspect 5.656:1 (wide banner). Match it exactly.
   const LOGO_ASPECT = 724 / 128;
-  const LOGO_W = 2.55;
+  const LOGO_W = 3.05;
   const LOGO_H = LOGO_W / LOGO_ASPECT;
   return (
-    <group position={[0, 3.28, 0.25]}>
+    <group position={[0, 3.1, 0.32]}>
       {/* gold frame */}
-      <mesh material={m.gold} castShadow><boxGeometry args={[3.0, 0.92, 0.10]} /></mesh>
-      {/* cream plaque */}
-      <mesh position={[0, 0, 0.06]} material={m.light}><boxGeometry args={[2.8, 0.70, 0.06]} /></mesh>
-      {/* logo — true colours on cream, correct aspect ratio */}
-      <mesh position={[0, 0, 0.10]}>
+      <mesh material={m.gold} castShadow><boxGeometry args={[3.62, 1.06, 0.12]} /></mesh>
+      {/* self-illuminated cream plaque — reads as a lit sign even in the dark hall */}
+      <mesh position={[0, 0, 0.07]}>
+        <boxGeometry args={[3.38, 0.82, 0.07]} />
+        <meshStandardMaterial color="#FAF4E6" emissive="#F0E7D2" emissiveIntensity={0.55} roughness={0.55} metalness={0} />
+      </mesh>
+      {/* logo — unlit (always full brightness), correct aspect */}
+      <mesh position={[0, 0, 0.115]}>
         <planeGeometry args={[LOGO_W, LOGO_H]} />
         <meshBasicMaterial map={tex} transparent toneMapped={false} />
       </mesh>
@@ -209,8 +211,8 @@ function CameraRig({
       lookX = PEDESTALS[nearest].x * 0.42;
       lookY = 0.85;
     } else {
-      // approaching the portal — look up toward the logo plaque
-      lookY = 1.95;
+      // approaching the portal — look up toward the logo sign so it's centred
+      lookY = 2.3;
     }
 
     if (activeIdx !== lastActive.current) {
@@ -244,8 +246,9 @@ function ShowroomScene({
       <Environment preset="apartment" environmentIntensity={0.35} />
       <ambientLight intensity={0.26} color="#f5ecda" />
       <directionalLight position={[3, 6, 8]} intensity={0.9} color="#fff0d8" />
-      {/* entrance warm wash on the logo */}
-      <spotLight position={[0, 5, 6]} target-position={[0, 3.4, 0.5]} angle={0.5} penumbra={0.8} intensity={high ? 60 : 40} color="#fff2d6" distance={16} />
+      {/* bright wash on the logo sign so it reads as a lit storefront sign */}
+      <spotLight position={[0, 4.4, 5.5]} target-position={[0, 3.1, 0.8]} angle={0.45} penumbra={0.75} intensity={high ? 130 : 90} color="#fff4dc" distance={16} />
+      <pointLight position={[0, 3.1, 2.4]} intensity={high ? 14 : 9} color="#fff2d6" distance={5} decay={2} />
 
       <Hall texSize={high ? 512 : 256} />
       <EntrancePortal m={m} />
