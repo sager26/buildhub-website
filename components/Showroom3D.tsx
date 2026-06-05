@@ -125,9 +125,9 @@ function Hall({ texSize }: { texSize: number }) {
 
 // ── Pedestal + product + spotlight ────────────────────────────────────────────────
 function PedestalDisplay({
-  index, m, active, spin, shadows, onSelect,
+  index, m, active, spin, onSelect,
 }: {
-  index: number; m: StoneMats; active: boolean; spin: boolean; shadows: boolean; onSelect: (i: number) => void;
+  index: number; m: StoneMats; active: boolean; spin: boolean; onSelect: (i: number) => void;
 }) {
   const p = PEDESTALS[index];
   const spotRef = useRef<THREE.SpotLight>(null);
@@ -153,8 +153,7 @@ function PedestalDisplay({
         intensity={30}
         distance={12}
         color="#fff3da"
-        castShadow={shadows}
-        shadow-mapSize={[1024, 1024]}
+        castShadow={false}
       />
       <group
         onPointerOver={(e) => { e.stopPropagation(); setHover(true); document.body.style.cursor = "pointer"; }}
@@ -174,9 +173,8 @@ function PedestalDisplay({
           </mesh>
         )}
       </group>
-      {shadows && (
-        <ContactShadows position={[0, 0.04, 0]} opacity={0.45} scale={3} blur={2.2} far={2} resolution={256} color="#000000" />
-      )}
+      {/* baked once (frames=1) → soft grounding blob at near-zero per-frame cost */}
+      <ContactShadows position={[0, 0.04, 0]} opacity={0.4} scale={3} blur={2.4} far={2} resolution={128} frames={1} color="#000000" />
     </group>
   );
 }
@@ -211,8 +209,8 @@ function CameraRig({
       lookX = PEDESTALS[nearest].x * 0.42;
       lookY = 0.85;
     } else {
-      // approaching the portal — look up toward the logo sign so it's centred
-      lookY = 2.3;
+      // approaching the portal — keep the logo sign high & fully clear of text
+      lookY = 2.05;
     }
 
     if (activeIdx !== lastActive.current) {
@@ -238,7 +236,7 @@ function ShowroomScene({
   quality: Quality;
 }) {
   const high = quality === "high";
-  const m = useStoneMaterials(1, high ? 512 : 256);
+  const m = useStoneMaterials(1, high ? 448 : 256);
 
   return (
     <>
@@ -250,7 +248,7 @@ function ShowroomScene({
       <spotLight position={[0, 4.4, 5.5]} target-position={[0, 3.1, 0.8]} angle={0.45} penumbra={0.75} intensity={high ? 130 : 90} color="#fff4dc" distance={16} />
       <pointLight position={[0, 3.1, 2.4]} intensity={high ? 14 : 9} color="#fff2d6" distance={5} decay={2} />
 
-      <Hall texSize={high ? 512 : 256} />
+      <Hall texSize={high ? 448 : 256} />
       <EntrancePortal m={m} />
 
       {PEDESTALS.map((_, i) => (
@@ -260,7 +258,6 @@ function ShowroomScene({
           m={m}
           active={i === activeIndex}
           spin={high || i === activeIndex}
-          shadows={high}
           onSelect={onSelect}
         />
       ))}
@@ -381,10 +378,10 @@ function Showroom3DInner() {
       <section id="top" ref={sectionRef} className="relative bg-[#0c0b09]" style={{ height: "420vh" }}>
         <div className="sticky top-0 h-screen w-full overflow-hidden">
           <Canvas
-            shadows={quality === "high"}
-            dpr={quality === "high" ? [1, 1.7] : [1, 1.25]}
+            shadows={false}
+            dpr={quality === "high" ? [1, 1.5] : [1, 1.1]}
             camera={{ position: [0, 1.15, CAM_START], fov: 60 }}
-            gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.92 }}
+            gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 0.92, powerPreference: "high-performance" }}
             onCreated={({ scene }) => {
               scene.background = new THREE.Color("#0c0b09");
               scene.fog = new THREE.FogExp2("#0c0b09", 0.026);
@@ -411,7 +408,7 @@ function Showroom3DInner() {
           <AnimatePresence>
             {atEntrance && (
               <motion.div
-                className="absolute inset-0 z-10 flex flex-col justify-end px-6 pb-28 md:justify-center md:px-12 md:pb-0"
+                className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end px-6 pb-24 md:px-12 md:pb-16"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -422,7 +419,7 @@ function Showroom3DInner() {
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
                     <span className="text-[10px] font-semibold uppercase tracking-[0.26em] text-white/70 sm:text-[11px]">{HERO.eyebrow}</span>
                   </div>
-                  <h1 className="max-w-3xl font-display text-[2.6rem] font-extrabold leading-[0.93] tracking-tight text-white drop-shadow-lg sm:text-6xl lg:text-8xl">
+                  <h1 className="max-w-2xl font-display text-[2.4rem] font-extrabold leading-[0.95] tracking-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl">
                     {heroWords.map((w, i) => (
                       <span key={i} className="mr-[0.18em] inline-block overflow-hidden pb-1">
                         <motion.span className="inline-block" initial={{ y: "110%" }} animate={{ y: 0 }}
@@ -432,11 +429,11 @@ function Showroom3DInner() {
                       </span>
                     ))}
                   </h1>
-                  <motion.p className="mt-5 hidden max-w-md text-base leading-relaxed text-white/65 drop-shadow sm:block md:text-lg"
+                  <motion.p className="mt-4 hidden max-w-md text-sm leading-relaxed text-white/65 drop-shadow sm:block md:text-base"
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, duration: 0.7 }}>
                     {HERO.body}
                   </motion.p>
-                  <motion.div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4"
+                  <motion.div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4"
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0, duration: 0.7 }}>
                     <MagneticButton href={WHATSAPP_QUOTE} external cursorLabel="Chat">
                       Get a Quote
@@ -444,11 +441,6 @@ function Showroom3DInner() {
                     </MagneticButton>
                     <MagneticButton href="#products" variant="ghost" cursorLabel="View">Explore Products</MagneticButton>
                   </motion.div>
-                  <motion.p className="mt-8 flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/40"
-                    animate={{ opacity: [0.3, 0.7, 0.3] }} transition={{ repeat: Infinity, duration: 2 }}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v10M3 8l4 4 4-4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    Scroll to enter the showroom
-                  </motion.p>
                 </div>
               </motion.div>
             )}

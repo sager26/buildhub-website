@@ -95,8 +95,8 @@ export function createLimestone(tone: StoneTone): StoneMaps {
   const scale = gridN / size * 4; // 4 tiles of base noise across the texture
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const big = fbm(grid, gridN, x * scale, y * scale, 5);
-      const fine = fbm(grid2, gridN, x * scale * 4, y * scale * 4, 3);
+      const big = fbm(grid, gridN, x * scale, y * scale, 4);
+      const fine = fbm(grid2, gridN, x * scale * 4, y * scale * 4, 2);
       // combine: broad mottling + fine grain + occasional pits
       let v = big * 0.78 + fine * 0.22;
       // subtle horizontal bedding planes (limestone strata)
