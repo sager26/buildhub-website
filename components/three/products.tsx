@@ -2,8 +2,33 @@
 
 import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
+import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { createLimestone } from "./stone";
+
+// Soft-edged box — real cast/foam-stone products have gently rounded edges,
+// never razor-sharp CGI corners. radius auto-clamped to the thinnest side.
+function RBox({
+  args, material, position, rotation, radius = 0.04,
+  castShadow = true, receiveShadow = false,
+}: {
+  args: [number, number, number];
+  material: THREE.Material;
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  radius?: number;
+  castShadow?: boolean;
+  receiveShadow?: boolean;
+}) {
+  const r = Math.max(0.004, Math.min(radius, Math.min(...args) * 0.42));
+  return (
+    <RoundedBox
+      args={args} radius={r} smoothness={3} steps={1}
+      position={position} rotation={rotation} material={material}
+      castShadow={castShadow} receiveShadow={receiveShadow}
+    />
+  );
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Shared, photoreal-textured stone materials. One limestone texture set is
@@ -24,30 +49,32 @@ export type StoneMats = {
 
 export function useStoneMaterials(repeat = 1, size = 512): StoneMats {
   return useMemo(() => {
-    const maps = createLimestone({ base: "#F1EBDD", contrast: 0.17, size, repeat });
+    // Smooth cast-cream finish — real EPS-coated foam stone is fine & uniform,
+    // not rough sandstone. Low contrast + gentle normal = soft realistic surface.
+    const maps = createLimestone({ base: "#EFE9DB", contrast: 0.08, size, repeat });
     const mk = (color: string, o?: { rough?: number; cc?: number; nrm?: number; env?: number }) =>
       new THREE.MeshPhysicalMaterial({
         map: maps.map,
         normalMap: maps.normalMap,
         roughnessMap: maps.roughnessMap,
         color: new THREE.Color(color),
-        roughness: o?.rough ?? 0.92,
+        roughness: o?.rough ?? 0.8,
         metalness: 0,
-        clearcoat: o?.cc ?? 0.05,
-        clearcoatRoughness: 0.85,
-        normalScale: new THREE.Vector2(o?.nrm ?? 0.55, o?.nrm ?? 0.55),
-        envMapIntensity: o?.env ?? 0.6,
+        clearcoat: o?.cc ?? 0.14,           // subtle coated sheen
+        clearcoatRoughness: 0.7,
+        normalScale: new THREE.Vector2(o?.nrm ?? 0.22, o?.nrm ?? 0.22),
+        envMapIntensity: o?.env ?? 0.7,
       });
     return {
-      light: mk("#FBF6EC", { rough: 0.84, cc: 0.10, env: 0.8 }),
-      stone: mk("#ECE4D2", { rough: 0.90, cc: 0.07, env: 0.65 }),
-      mid:   mk("#D6CDB8", { rough: 0.94, cc: 0.04, env: 0.5 }),
-      dark:  mk("#AFA690", { rough: 0.97, cc: 0.02, env: 0.4 }),
-      foam:  mk("#F2EEE4", { rough: 0.96, cc: 0.03, nrm: 0.35, env: 0.45 }),
-      joint: mk("#8C8478", { rough: 1.0,  cc: 0.0,  nrm: 0.4,  env: 0.3 }),
-      reed:  mk("#F7F1E2", { rough: 0.82, cc: 0.12, env: 0.75 }),
-      gold:  new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#C9A94C"), roughness: 0.42, metalness: 0.6, clearcoat: 0.4, envMapIntensity: 1.1 }),
-      panel: new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#171510"), roughness: 0.7, metalness: 0.1, envMapIntensity: 0.3 }),
+      light: mk("#FAF5EB", { rough: 0.70, cc: 0.18, nrm: 0.16, env: 0.85 }),
+      stone: mk("#EFE7D6", { rough: 0.78, cc: 0.14, nrm: 0.20, env: 0.7  }),
+      mid:   mk("#DCD3C0", { rough: 0.84, cc: 0.10, nrm: 0.22, env: 0.55 }),
+      dark:  mk("#B6AD98", { rough: 0.90, cc: 0.06, nrm: 0.24, env: 0.45 }),
+      foam:  mk("#F4F0E6", { rough: 0.80, cc: 0.12, nrm: 0.14, env: 0.55 }),
+      joint: mk("#9A9286", { rough: 0.95, cc: 0.02, nrm: 0.30, env: 0.35 }),
+      reed:  mk("#F7F2E5", { rough: 0.66, cc: 0.20, nrm: 0.14, env: 0.8  }),
+      gold:  new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#C9A94C"), roughness: 0.40, metalness: 0.65, clearcoat: 0.5, envMapIntensity: 1.2 }),
+      panel: new THREE.MeshPhysicalMaterial({ color: new THREE.Color("#171510"), roughness: 0.65, metalness: 0.1, envMapIntensity: 0.35 }),
     };
   }, [repeat, size]);
 }
@@ -80,17 +107,15 @@ export function FoamStonePanel({ m, spin = true }: { m: StoneMats; spin?: boolea
 
   return (
     <group ref={ref} rotation={[0.12, 0.3, 0]}>
-      <mesh material={m.foam} castShadow><boxGeometry args={[1.40, 0.92, 0.26]} /></mesh>
+      <RBox args={[1.40, 0.92, 0.26]} radius={0.03} material={m.foam} />
       {stones.map((s, i) => (
-        <mesh key={i} position={[s.x, s.y, 0.15]} material={s.mat} castShadow>
-          <boxGeometry args={[0.58, 0.25, 0.06]} />
-        </mesh>
+        <RBox key={i} position={[s.x, s.y, 0.15]} args={[0.58, 0.25, 0.07]} radius={0.035} material={s.mat} />
       ))}
       {[0.16, -0.16].map((y, i) => (
-        <mesh key={i} position={[0, y, 0.14]} material={m.joint}><boxGeometry args={[1.25, 0.022, 0.02]} /></mesh>
+        <mesh key={i} position={[0, y, 0.135]} material={m.joint}><boxGeometry args={[1.25, 0.022, 0.02]} /></mesh>
       ))}
-      <mesh position={[0, 0, 0.14]} material={m.joint}><boxGeometry args={[0.022, 0.84, 0.02]} /></mesh>
-      <mesh position={[0, -0.48, 0.05]} material={m.mid}><boxGeometry args={[1.40, 0.04, 0.30]} /></mesh>
+      <mesh position={[0, 0, 0.135]} material={m.joint}><boxGeometry args={[0.022, 0.84, 0.02]} /></mesh>
+      <RBox args={[1.40, 0.05, 0.30]} radius={0.02} position={[0, -0.48, 0.05]} material={m.mid} />
     </group>
   );
 }
@@ -115,7 +140,14 @@ export function CorniceModel({ m, spin = true }: { m: StoneMats; spin?: boolean 
     s.lineTo(0.62, 0.70); s.lineTo(0.00, 0.70); s.closePath();
     return s;
   };
-  const corniceGeo = useMemo(() => new THREE.ExtrudeGeometry(profile(), { depth: 1.70, bevelEnabled: false }), []);
+  const corniceGeo = useMemo(() => {
+    const g = new THREE.ExtrudeGeometry(profile(), {
+      depth: 1.64, bevelEnabled: true, bevelThickness: 0.025, bevelSize: 0.022,
+      bevelSegments: 3, steps: 1,
+    });
+    g.translate(0, 0, 0.03);
+    return g;
+  }, []);
   const capGeo = useMemo(() => new THREE.ShapeGeometry(profile()), []);
 
   return (
@@ -124,9 +156,7 @@ export function CorniceModel({ m, spin = true }: { m: StoneMats; spin?: boolean 
       <mesh geometry={capGeo} material={m.mid} />
       <mesh geometry={capGeo} material={m.mid} position={[0, 0, 1.70]} />
       {Array.from({ length: 6 }, (_, i) => (
-        <mesh key={i} position={[0.50, 0.42, 0.14 + i * 0.26]} material={m.light}>
-          <boxGeometry args={[0.18, 0.12, 0.17]} />
-        </mesh>
+        <RBox key={i} position={[0.50, 0.42, 0.14 + i * 0.26]} args={[0.18, 0.12, 0.17]} radius={0.025} material={m.light} />
       ))}
     </group>
   );
@@ -174,7 +204,7 @@ export function ColumnCapital({ m, spin = true }: { m: StoneMats; spin?: boolean
         const a = (i / N) * Math.PI * 2;
         return (
           <mesh key={i} position={[Math.cos(a) * REED_D, -0.45, Math.sin(a) * REED_D]} material={m.reed} castShadow>
-            <cylinderGeometry args={[REED_R * 0.85, REED_R, 0.82, 12]} />
+            <cylinderGeometry args={[REED_R * 0.85, REED_R, 0.82, 18]} />
           </mesh>
         );
       })}
@@ -184,12 +214,12 @@ export function ColumnCapital({ m, spin = true }: { m: StoneMats; spin?: boolean
         </mesh>
       ))}
       <mesh geometry={echinusGeo} position={[0, -0.14, 0]} material={m.stone} castShadow />
-      <mesh position={[0, 0.30, 0]} material={m.light} castShadow><boxGeometry args={[0.88, 0.12, 0.88]} /></mesh>
-      <mesh position={[0, 0.23, 0]} material={m.mid}><boxGeometry args={[0.92, 0.030, 0.92]} /></mesh>
+      <RBox args={[0.88, 0.12, 0.88]} radius={0.03} position={[0, 0.30, 0]} material={m.light} />
+      <RBox args={[0.92, 0.030, 0.92]} radius={0.014} position={[0, 0.23, 0]} material={m.mid} />
       <mesh position={[0, -0.92, 0]} rotation={[Math.PI / 2, 0, 0]} material={m.stone}>
-        <torusGeometry args={[0.30, 0.060, 10, 64]} />
+        <torusGeometry args={[0.30, 0.060, 16, 80]} />
       </mesh>
-      <mesh position={[0, -1.04, 0]} material={m.mid}><boxGeometry args={[0.72, 0.18, 0.72]} /></mesh>
+      <RBox args={[0.72, 0.18, 0.72]} radius={0.04} position={[0, -1.04, 0]} material={m.mid} />
     </group>
   );
 }
@@ -238,7 +268,10 @@ export function ArchSection({ m, spin = true }: { m: StoneMats; spin?: boolean }
       s.lineTo(Math.cos(a) * (Ro + 0.01), Math.sin(a) * (Ro + 0.01));
     }
     s.closePath();
-    return new THREE.ExtrudeGeometry(s, { depth: D * 0.6, bevelEnabled: false });
+    return new THREE.ExtrudeGeometry(s, {
+      depth: D * 0.55, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.018,
+      bevelSegments: 2, steps: 1,
+    });
   }, []);
 
   useFrame((_, dt) => {
@@ -251,12 +284,12 @@ export function ArchSection({ m, spin = true }: { m: StoneMats; spin?: boolean }
   return (
     <group ref={ref} position={[0, -0.05, 0]}>
       {stones.map(({ geo, mat }, i) => <mesh key={i} geometry={geo} material={mat} castShadow />)}
-      <mesh position={[0, Ri + 0.18, 0.02]} material={m.light} castShadow><boxGeometry args={[0.28, 0.48, D + 0.08]} /></mesh>
+      <RBox args={[0.28, 0.48, D + 0.08]} radius={0.03} position={[0, Ri + 0.18, 0.02]} material={m.light} />
       <mesh geometry={archivoltGeo} material={m.mid} position={[0, 0, D * 0.08]} castShadow />
       {([-1, 1] as const).map((s, i) => (
         <group key={i}>
-          <mesh position={[s * (Ri + 0.26), -0.12, 0]} material={m.mid} castShadow><boxGeometry args={[0.44, 0.30, D + 0.10]} /></mesh>
-          <mesh position={[s * (Ri + 0.26), -0.62, 0]} material={m.stone} castShadow><boxGeometry args={[0.44, 0.70, D + 0.06]} /></mesh>
+          <RBox args={[0.44, 0.30, D + 0.10]} radius={0.035} position={[s * (Ri + 0.26), -0.12, 0]} material={m.mid} />
+          <RBox args={[0.44, 0.70, D + 0.06]} radius={0.035} position={[s * (Ri + 0.26), -0.62, 0]} material={m.stone} />
         </group>
       ))}
     </group>
@@ -274,7 +307,7 @@ export function Balustrade({ m, spin = true }: { m: StoneMats; spin?: boolean })
       [0.10, 0], [0.135, 0.05], [0.10, 0.12], [0.065, 0.22], [0.125, 0.33],
       [0.10, 0.44], [0.06, 0.52], [0.095, 0.60], [0.07, 0.66], [0.10, 0.70],
     ];
-    return new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 24);
+    return new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 36);
   }, []);
   useFrame((_, dt) => {
     if (!ref.current || !spin) return;
@@ -284,13 +317,13 @@ export function Balustrade({ m, spin = true }: { m: StoneMats; spin?: boolean })
   const xs = [-0.66, -0.33, 0, 0.33, 0.66];
   return (
     <group ref={ref} position={[0, -0.42, 0]}>
-      <mesh position={[0, -0.14, 0]} material={m.mid} castShadow><boxGeometry args={[1.85, 0.12, 0.40]} /></mesh>
-      <mesh position={[0, -0.04, 0]} material={m.stone} castShadow><boxGeometry args={[1.72, 0.10, 0.32]} /></mesh>
+      <RBox args={[1.85, 0.12, 0.40]} radius={0.03} position={[0, -0.14, 0]} material={m.mid} />
+      <RBox args={[1.72, 0.10, 0.32]} radius={0.025} position={[0, -0.04, 0]} material={m.stone} />
       {xs.map((x, i) => (
         <mesh key={i} geometry={balusterGeo} position={[x, 0.02, 0]} material={m.light} castShadow />
       ))}
-      <mesh position={[0, 0.80, 0]} material={m.stone} castShadow><boxGeometry args={[1.72, 0.14, 0.34]} /></mesh>
-      <mesh position={[0, 0.90, 0]} material={m.light} castShadow><boxGeometry args={[1.85, 0.08, 0.42]} /></mesh>
+      <RBox args={[1.72, 0.14, 0.34]} radius={0.03} position={[0, 0.80, 0]} material={m.stone} />
+      <RBox args={[1.85, 0.08, 0.42]} radius={0.025} position={[0, 0.90, 0]} material={m.light} />
     </group>
   );
 }
@@ -312,15 +345,15 @@ export function WindowSurround({ m, spin = true }: { m: StoneMats; spin?: boolea
       {/* dark opening */}
       <mesh position={[0, 0, -0.06]} material={m.dark}><boxGeometry args={[W, H, 0.06]} /></mesh>
       {/* outer reveal */}
-      <mesh position={[0, 0, -0.03]} material={m.mid}><boxGeometry args={[W + th * 2 + 0.06, H + th * 2 + 0.06, 0.05]} /></mesh>
+      <RBox args={[W + th * 2 + 0.06, H + th * 2 + 0.06, 0.05]} radius={0.02} position={[0, 0, -0.03]} material={m.mid} />
       {/* frame bars */}
-      <mesh position={[-(W / 2 + th / 2), 0.04, 0]} material={m.stone} castShadow><boxGeometry args={[th, H + th * 2, d]} /></mesh>
-      <mesh position={[ (W / 2 + th / 2), 0.04, 0]} material={m.stone} castShadow><boxGeometry args={[th, H + th * 2, d]} /></mesh>
-      <mesh position={[0, (H / 2 + th / 2), 0]} material={m.stone} castShadow><boxGeometry args={[W + th * 2, th, d]} /></mesh>
+      <RBox args={[th, H + th * 2, d]} radius={0.03} position={[-(W / 2 + th / 2), 0.04, 0]} material={m.stone} />
+      <RBox args={[th, H + th * 2, d]} radius={0.03} position={[ (W / 2 + th / 2), 0.04, 0]} material={m.stone} />
+      <RBox args={[W + th * 2, th, d]} radius={0.03} position={[0, (H / 2 + th / 2), 0]} material={m.stone} />
       {/* sill */}
-      <mesh position={[0, -(H / 2 + th / 2), 0.03]} material={m.mid} castShadow><boxGeometry args={[W + th * 2 + 0.18, th + 0.06, d + 0.12]} /></mesh>
+      <RBox args={[W + th * 2 + 0.18, th + 0.06, d + 0.12]} radius={0.03} position={[0, -(H / 2 + th / 2), 0.03]} material={m.mid} />
       {/* keystone */}
-      <mesh position={[0, (H / 2 + th), 0.05]} material={m.light} castShadow><boxGeometry args={[0.24, 0.32, d + 0.06]} /></mesh>
+      <RBox args={[0.24, 0.32, d + 0.06]} radius={0.03} position={[0, (H / 2 + th), 0.05]} material={m.light} />
     </group>
   );
 }
