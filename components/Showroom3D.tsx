@@ -201,25 +201,35 @@ function CameraRig({
   progressRef: React.MutableRefObject<number>;
   onActive: (i: number) => void;
 }) {
-  const { camera } = useThree();
+  const { camera, size } = useThree();
   const lookTarget = useRef(new THREE.Vector3(0, 1.4, -6));
   const lastActive = useRef(-2);
   const smoothP = useRef(0);
+  const lastAspect = useRef(0);
 
   useFrame((state, dt) => {
-    // Cinematic damping: ease the camera toward the scroll target so the glide
-    // feels premium and any scroll micro-jitter is absorbed.
-    const k = 1 - Math.pow(0.0015, dt); // frame-rate-independent smoothing
+    // Responsive FOV — much wider on portrait phones so the portal + hall fit.
+    const aspect = size.width / Math.max(1, size.height);
+    if (Math.abs(aspect - lastAspect.current) > 0.01) {
+      lastAspect.current = aspect;
+      const cam = camera as THREE.PerspectiveCamera;
+      cam.fov = aspect < 0.7 ? 86 : aspect < 1 ? 76 : 64;
+      cam.updateProjectionMatrix();
+    }
+
+    // Cinematic damping: ease the camera toward the scroll target.
+    const k = 1 - Math.pow(0.0015, dt);
     smoothP.current = THREE.MathUtils.lerp(smoothP.current, progressRef.current, k);
     const p = smoothP.current;
     const camZ = THREE.MathUtils.lerp(CAM_START, CAM_END, p);
     const bob = Math.sin(state.clock.elapsedTime * 0.6) * 0.04;
-    camera.position.set(0, 1.15 + bob, camZ);
+    // Slightly raised eye-line so the view tilts gently downward into the scene.
+    camera.position.set(0, 1.5 + bob, camZ);
 
     let activeIdx = -1;
     let lookX = 0, lookY = 1.4;
     if (camZ <= HALL_ENTER_Z) {
-      // inside hall — pick nearest pedestal
+      // inside hall — pick nearest pedestal, look down toward it
       let nearest = 0, best = Infinity;
       PEDESTALS.forEach((ped, i) => {
         const d = Math.abs(ped.z - (camZ - 4));
@@ -227,10 +237,10 @@ function CameraRig({
       });
       activeIdx = nearest;
       lookX = PEDESTALS[nearest].x * 0.42;
-      lookY = 0.85;
+      lookY = 0.55;
     } else {
-      // approaching the portal — look right at the sign so it's centred & clear
-      lookY = 2.55;
+      // approaching the portal — face a bit downward; wide FOV keeps the sign in frame
+      lookY = 2.05;
     }
 
     if (activeIdx !== lastActive.current) {
