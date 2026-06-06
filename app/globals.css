@@ -31,6 +31,22 @@ body {
 [dir="rtl"] .font-display {
   font-family: var(--font-cairo), var(--font-sans);
 }
+/* Arabic must never have letter-spacing (tracking) — it breaks the joined
+   script — and needs a touch more line-height so glyphs aren't clipped. */
+[dir="rtl"] * {
+  letter-spacing: 0 !important;
+}
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3 {
+  line-height: 1.35 !important;
+}
+[dir="rtl"] p {
+  line-height: 1.9;
+}
+[dir="rtl"] .uppercase {
+  text-transform: none;
+}
 
 /* Lenis */
 html.lenis,

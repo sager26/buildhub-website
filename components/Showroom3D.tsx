@@ -42,7 +42,8 @@ function LogoPlaque({ m }: { m: StoneMats }) {
   const LOGO_W = 3.05;
   const LOGO_H = LOGO_W / LOGO_ASPECT;
   return (
-    <group position={[0, 3.1, 0.32]}>
+    // pushed forward (z) so it floats in front of the entablature — nothing covers it
+    <group position={[0, 3.15, 1.15]}>
       {/* gold frame */}
       <mesh material={m.gold} castShadow><boxGeometry args={[3.62, 1.06, 0.12]} /></mesh>
       {/* self-illuminated cream plaque — reads as a lit sign even in the dark hall */}
@@ -82,6 +83,18 @@ function EntrancePortal({ m }: { m: StoneMats }) {
       {/* arch springer corbels */}
       {([-1, 1] as const).map((s, i) => (
         <mesh key={i} position={[s * 2.25, 0.5, 0]} material={m.mid} castShadow><boxGeometry args={[0.5, 0.4, 0.6]} /></mesh>
+      ))}
+      {/* jamb piers — the arch legs run all the way down to the floor */}
+      {([-1, 1] as const).map((s, i) => (
+        <mesh key={`jamb${i}`} position={[s * 2.25, -0.5, 0]} material={m.stone} castShadow receiveShadow>
+          <boxGeometry args={[0.5, 2.0, 0.58]} />
+        </mesh>
+      ))}
+      {/* jamb bases */}
+      {([-1, 1] as const).map((s, i) => (
+        <mesh key={`jb${i}`} position={[s * 2.25, -1.36, 0]} material={m.mid} castShadow>
+          <boxGeometry args={[0.62, 0.28, 0.7]} />
+        </mesh>
       ))}
       {/* keystone */}
       <mesh position={[0, 2.78, 0]} material={m.light} castShadow><boxGeometry args={[0.34, 0.5, 0.6]} /></mesh>
