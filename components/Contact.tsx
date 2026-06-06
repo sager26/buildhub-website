@@ -4,9 +4,11 @@ import { motion } from "framer-motion";
 import Reveal from "./ui/Reveal";
 import MagneticButton from "./ui/MagneticButton";
 import { BRAND, WHATSAPP_QUOTE } from "@/lib/constants";
+import { useLang } from "@/lib/i18n";
 import { EASE } from "@/lib/motion";
 
 export default function Contact() {
+  const { t } = useLang();
   return (
     <section id="contact" className="bg-[#f4f3ef] py-24 md:py-36">
       <div className="container-x">
@@ -16,30 +18,20 @@ export default function Contact() {
 
           <div className="relative grid gap-12 lg:grid-cols-2">
             <div>
-              <Reveal>
-                <span className="eyebrow">Let&apos;s build</span>
-              </Reveal>
+              <Reveal><span className="eyebrow">{t.contact.eyebrow}</span></Reveal>
               <motion.h2
                 className="mt-5 font-display text-4xl font-bold leading-[1.02] tracking-tight text-gray-900 md:text-6xl"
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.8, ease: EASE }}
+                initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.8, ease: EASE }}
               >
-                Ready to elevate
-                <br />
-                your <span className="text-brand-green">facade?</span>
+                {t.contact.title1}<br /><span className="text-brand-green">{t.contact.title2}</span>
               </motion.h2>
               <Reveal delay={0.1}>
-                <p className="mt-6 max-w-md text-lg leading-relaxed text-gray-500">
-                  Send us your drawings or ideas and we&apos;ll get back with a
-                  custom quote. Fast, lightweight, made in Jordan.
-                </p>
+                <p className="mt-6 max-w-md text-lg leading-relaxed text-gray-500">{t.contact.body}</p>
               </Reveal>
 
               <div className="mt-8 flex flex-wrap gap-4">
                 <MagneticButton href={WHATSAPP_QUOTE} external cursorLabel="Chat">
-                  Chat on WhatsApp
+                  {t.ui.chat}
                 </MagneticButton>
                 <MagneticButton href={BRAND.phoneHref} variant="ghost-light" cursorLabel="Call">
                   {BRAND.phoneDisplay}
@@ -48,7 +40,7 @@ export default function Contact() {
 
               <div className="mt-10 grid gap-4 border-t border-gray-200 pt-8 sm:grid-cols-2">
                 <a href={BRAND.emailHref} className="group flex flex-col gap-1" data-cursor="Email">
-                  <span className="text-xs uppercase tracking-widest text-gray-400">Email</span>
+                  <span className="text-xs uppercase tracking-widest text-gray-400">{t.contact.email}</span>
                   <span className="text-gray-700 transition-colors group-hover:text-brand-green">
                     {BRAND.email}
                   </span>
@@ -60,7 +52,7 @@ export default function Contact() {
                   className="group flex flex-col gap-1"
                   data-cursor="Map"
                 >
-                  <span className="text-xs uppercase tracking-widest text-gray-400">Location</span>
+                  <span className="text-xs uppercase tracking-widest text-gray-400">{t.contact.location}</span>
                   <span className="text-gray-700 transition-colors group-hover:text-brand-green">
                     {BRAND.location}
                   </span>
@@ -89,7 +81,7 @@ export default function Contact() {
                 rel="noopener noreferrer"
                 className="absolute bottom-4 left-4 rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-gray-700 shadow backdrop-blur hover:text-brand-green"
               >
-                Open in Google Maps ↗
+                {t.contact.openMaps}
               </a>
             </motion.div>
           </div>

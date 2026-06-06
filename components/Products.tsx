@@ -6,40 +6,31 @@ import Image from "next/image";
 import Reveal from "./ui/Reveal";
 import ProductCategory from "./ProductCategory";
 import { PRODUCTS } from "@/lib/constants";
+import { useLang } from "@/lib/i18n";
 
 export default function Products() {
+  const { t } = useLang();
   const [lightbox, setLightbox] = useState<number | null>(null);
-  const active = lightbox !== null ? PRODUCTS[lightbox] : null;
+  const items = PRODUCTS.map((p, i) => ({ ...p, name: t.products.items[i].name, body: t.products.items[i].body }));
+  const active = lightbox !== null ? items[lightbox] : null;
 
   return (
     <>
       <section id="products" className="bg-white py-24 md:py-36">
         <div className="container-x">
           <div className="mb-10 max-w-2xl">
-            <Reveal>
-              <span className="eyebrow">Our Products</span>
-            </Reveal>
+            <Reveal><span className="eyebrow">{t.products.eyebrow}</span></Reveal>
             <Reveal delay={0.08}>
-              <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 md:text-6xl">
-                A complete facade system
-              </h2>
+              <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 md:text-6xl">{t.products.title}</h2>
             </Reveal>
             <Reveal delay={0.16}>
-              <p className="mt-5 text-lg leading-relaxed text-gray-500">
-                From insulating Foam Stone to bespoke columns and arches — every
-                element is custom-made for your project.
-              </p>
+              <p className="mt-5 text-lg leading-relaxed text-gray-500">{t.products.body}</p>
             </Reveal>
           </div>
 
           <div>
-            {PRODUCTS.map((p, i) => (
-              <ProductCategory
-                key={p.id}
-                product={p}
-                index={i}
-                onOpen={() => setLightbox(i)}
-              />
+            {items.map((p, i) => (
+              <ProductCategory key={p.id} product={p} label={t.products.label} index={i} onOpen={() => setLightbox(i)} />
             ))}
           </div>
         </div>

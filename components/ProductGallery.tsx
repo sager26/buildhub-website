@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Reveal from "./ui/Reveal";
+import { useLang } from "@/lib/i18n";
 
 const GALLERY = [
   { src: "/catalog-pages/page-46.png", pos: "center 20%",  span: 2, label: "Columns & Capitals" },
@@ -57,25 +58,19 @@ function GalleryItem({ src, pos, span, label, index }: {
 }
 
 export default function ProductGallery() {
+  const { t } = useLang();
   return (
     <section className="bg-[#f4f3ef] py-20 md:py-28">
       <div className="container-x">
         <div className="mb-10 flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <Reveal>
-              <span className="eyebrow">Project Gallery</span>
-            </Reveal>
+            <Reveal><span className="eyebrow">{t.gallery.eyebrow}</span></Reveal>
             <Reveal delay={0.08}>
-              <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">
-                Built across Jordan
-              </h2>
+              <h2 className="mt-4 font-display text-4xl font-bold tracking-tight text-gray-900 md:text-5xl">{t.gallery.title}</h2>
             </Reveal>
           </div>
           <Reveal delay={0.12}>
-            <p className="max-w-sm text-sm leading-relaxed text-gray-500">
-              Residential villas, commercial towers, and landmark buildings — every
-              project finished with BuildHub facade systems.
-            </p>
+            <p className="max-w-sm text-sm leading-relaxed text-gray-500">{t.gallery.body}</p>
           </Reveal>
         </div>
 

@@ -9,13 +9,15 @@ import * as THREE from "three";
 import {
   useStoneMaterials,
   ProductModel,
-  PRODUCT_META,
   type StoneMats,
 } from "./three/products";
 import { createLimestone } from "./three/stone";
 import MagneticButton from "./ui/MagneticButton";
-import { HERO, WHATSAPP_QUOTE } from "@/lib/constants";
+import { WHATSAPP_QUOTE } from "@/lib/constants";
+import { useLang } from "@/lib/i18n";
 import { EASE } from "@/lib/motion";
+
+const PMETA_N = ["01", "02", "03", "04", "05", "06"];
 
 // ── Layout ──────────────────────────────────────────────────────────────────────
 const PEDESTALS = [
@@ -295,7 +297,9 @@ function InspectModal({ index, onClose, onPrev, onNext }: {
   index: number; onClose: () => void; onPrev: () => void; onNext: () => void;
 }) {
   const m = useStoneMaterials(1, 512);
-  const meta = PRODUCT_META[index];
+  const { t } = useLang();
+  const meta = { n: PMETA_N[index], ...t.showroom[index] };
+  const count = t.showroom.length;
   return (
     <motion.div className="fixed inset-0 z-[400] flex flex-col bg-[#0c0b09]"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
@@ -304,7 +308,7 @@ function InspectModal({ index, onClose, onPrev, onNext }: {
           <button onClick={onPrev} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white" aria-label="Previous">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
-          <span className="text-xs font-semibold tabular-nums text-white/40">{index + 1} / {PRODUCT_META.length}</span>
+          <span className="text-xs font-semibold tabular-nums text-white/40">{index + 1} / {count}</span>
           <button onClick={onNext} className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-white/8 text-white/70 transition hover:bg-white/15 hover:text-white" aria-label="Next">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3L11 8L6 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
@@ -321,7 +325,7 @@ function InspectModal({ index, onClose, onPrev, onNext }: {
             onCreated={({ scene }) => { scene.background = new THREE.Color("#0c0b09"); }} className="!absolute inset-0">
             <Suspense fallback={null}><InspectScene index={index} m={m} /></Suspense>
           </Canvas>
-          <p className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/12 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/35 backdrop-blur-sm">Drag to rotate</p>
+          <p className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/12 bg-white/5 px-4 py-1.5 text-xs font-medium text-white/35 backdrop-blur-sm">{t.ui.drag}</p>
         </div>
         <motion.div key={`info-${index}`} className="flex flex-col justify-center border-t border-white/10 px-8 py-8 md:w-[340px] md:border-l md:border-t-0 md:px-10 md:py-12"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.08 }}>
@@ -329,14 +333,14 @@ function InspectModal({ index, onClose, onPrev, onNext }: {
           <h2 className="mt-3 font-display text-2xl font-bold text-white md:text-3xl">{meta.name}</h2>
           <p className="mt-4 text-sm leading-relaxed text-white/55">{meta.detail}</p>
           <div className="mt-7 flex gap-2">
-            {PRODUCT_META.map((_, i) => (
+            {t.showroom.map((_, i) => (
               <button key={i} onClick={() => { if (i < index) onPrev(); else if (i > index) onNext(); }}
                 className={`h-1.5 rounded-full transition-all duration-300 ${i === index ? "w-6 bg-brand-green" : "w-1.5 bg-white/20 hover:bg-white/40"}`} />
             ))}
           </div>
           <a href={WHATSAPP_QUOTE} target="_blank" rel="noopener noreferrer"
             className="mt-7 inline-flex items-center justify-center gap-2 rounded-full bg-brand-green px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#00b400]">
-            Get a Quote
+            {t.ui.quote}
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </a>
         </motion.div>
@@ -346,9 +350,9 @@ function InspectModal({ index, onClose, onPrev, onNext }: {
 }
 
 // ── Section wrapper ────────────────────────────────────────────────────────────────
-const heroWords = HERO.title.split(" ");
-
 function Showroom3DInner() {
+  const { t } = useLang();
+  const heroWords = t.hero.title.split(" ");
   const sectionRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const [active, setActive] = useState(-1);
@@ -376,7 +380,7 @@ function Showroom3DInner() {
   }, []);
 
   const atEntrance = active === -1;
-  const meta = active >= 0 ? PRODUCT_META[active] : null;
+  const meta = active >= 0 ? { n: PMETA_N[active], ...t.showroom[active] } : null;
 
   return (
     <>
@@ -422,7 +426,7 @@ function Showroom3DInner() {
                 <div className="mx-auto w-full max-w-7xl">
                   <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-3.5 py-1.5 backdrop-blur-sm">
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-green" />
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.26em] text-white/70 sm:text-[11px]">{HERO.eyebrow}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.26em] text-white/70 sm:text-[11px]">{t.hero.eyebrow}</span>
                   </div>
                   <h1 className="max-w-2xl font-display text-[2.4rem] font-extrabold leading-[0.95] tracking-tight text-white drop-shadow-lg sm:text-5xl lg:text-6xl">
                     {heroWords.map((w, i) => (
@@ -436,15 +440,15 @@ function Showroom3DInner() {
                   </h1>
                   <motion.p className="mt-4 hidden max-w-md text-sm leading-relaxed text-white/65 drop-shadow sm:block md:text-base"
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8, duration: 0.7 }}>
-                    {HERO.body}
+                    {t.hero.body}
                   </motion.p>
                   <motion.div className="mt-6 flex flex-wrap items-center gap-3 sm:gap-4"
                     initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0, duration: 0.7 }}>
                     <MagneticButton href={WHATSAPP_QUOTE} external cursorLabel="Chat">
-                      Get a Quote
+                      {t.ui.quote}
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                     </MagneticButton>
-                    <MagneticButton href="#products" variant="ghost" cursorLabel="View">Explore Products</MagneticButton>
+                    <MagneticButton href="#products" variant="ghost" cursorLabel="View">{t.ui.explore}</MagneticButton>
                   </motion.div>
                 </div>
               </motion.div>
@@ -466,13 +470,13 @@ function Showroom3DInner() {
                       <h3 className="mt-1 font-display text-2xl font-bold text-white md:text-3xl">{meta.name}</h3>
                       <p className="mt-2 text-sm leading-relaxed text-white/60">{meta.detail}</p>
                       <button onClick={() => setSelected(active)} className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/25 px-5 py-2 text-xs font-semibold text-white/80 transition hover:border-brand-green hover:text-brand-green">
-                        Inspect in 3D
+                        {t.ui.inspect}
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 6h10M6 1l5 5-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                     </motion.div>
                   </AnimatePresence>
                   <div className="mt-6 flex gap-2">
-                    {PRODUCT_META.map((_, i) => (
+                    {t.showroom.map((_, i) => (
                       <span key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === active ? "w-7 bg-brand-green" : "w-1.5 bg-white/25"}`} />
                     ))}
                   </div>
@@ -489,7 +493,7 @@ function Showroom3DInner() {
             index={selected}
             onClose={() => setSelected(null)}
             onPrev={() => setSelected((s) => Math.max(0, (s ?? 0) - 1))}
-            onNext={() => setSelected((s) => Math.min(PRODUCT_META.length - 1, (s ?? 0) + 1))}
+            onNext={() => setSelected((s) => Math.min(t.showroom.length - 1, (s ?? 0) + 1))}
           />
         )}
       </AnimatePresence>

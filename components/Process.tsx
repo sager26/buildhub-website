@@ -2,39 +2,29 @@
 
 import { motion } from "framer-motion";
 import Reveal from "./ui/Reveal";
-import { PROCESS } from "@/lib/constants";
+import { useLang } from "@/lib/i18n";
 import { stagger, fadeUp } from "@/lib/motion";
 
 export default function Process() {
+  const { t } = useLang();
   return (
     <section className="bg-[#f4f3ef] py-24 md:py-36">
       <div className="container-x">
         <div className="mb-14 max-w-xl">
-          <Reveal>
-            <span className="eyebrow">{PROCESS.eyebrow}</span>
-          </Reveal>
+          <Reveal><span className="eyebrow">{t.process.eyebrow}</span></Reveal>
           <Reveal delay={0.08}>
-            <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 md:text-5xl">
-              {PROCESS.title}
-            </h2>
+            <h2 className="mt-5 font-display text-4xl font-bold leading-[1.05] tracking-tight text-gray-900 md:text-5xl">{t.process.title}</h2>
           </Reveal>
         </div>
 
         <motion.div
           className="grid gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 md:grid-cols-3"
-          variants={stagger}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: "-60px" }}
+          variants={stagger} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-60px" }}
         >
-          {PROCESS.steps.map((s) => (
-            <motion.div
-              key={s.n}
-              variants={fadeUp}
-              className="group relative bg-white p-8 transition-colors duration-300 hover:bg-[#f9f8f5] md:p-10"
-            >
+          {t.process.steps.map((s, i) => (
+            <motion.div key={i} variants={fadeUp} className="group relative bg-white p-8 transition-colors duration-300 hover:bg-[#f9f8f5] md:p-10">
               <span className="font-display text-6xl font-extrabold text-gray-100 transition-colors group-hover:text-brand-green/25">
-                {s.n}
+                {String(i + 1).padStart(2, "0")}
               </span>
               <h3 className="mt-6 font-display text-2xl font-semibold text-gray-900">
                 {s.title}

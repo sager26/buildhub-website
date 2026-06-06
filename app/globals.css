@@ -26,6 +26,12 @@ body {
   overflow-x: hidden;
 }
 
+/* Arabic / RTL — use Cairo for proper Arabic glyphs */
+[dir="rtl"] body,
+[dir="rtl"] .font-display {
+  font-family: var(--font-cairo), var(--font-sans);
+}
+
 /* Lenis */
 html.lenis,
 html.lenis body {

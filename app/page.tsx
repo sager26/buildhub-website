@@ -6,10 +6,11 @@ import Marquee from "@/components/ui/Marquee";
 import WhyChoose from "@/components/WhyChoose";
 import Products from "@/components/Products";
 import ProductGallery from "@/components/ProductGallery";
+import CatalogCTA from "@/components/CatalogCTA";
 import Process from "@/components/Process";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import { PRODUCTS } from "@/lib/constants";
+import MarqueeStrip from "@/components/MarqueeStrip";
 
 export default function Home() {
   return (
@@ -20,10 +21,11 @@ export default function Home() {
         {/* 3D showroom = the entrance */}
         <Showroom3D />
         <About />
-        <Marquee items={PRODUCTS.map((p) => p.name)} />
+        <MarqueeStrip />
         <WhyChoose />
         <Products />
         <ProductGallery />
+        <CatalogCTA />
         <Process />
         <Contact />
       </main>

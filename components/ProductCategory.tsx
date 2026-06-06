@@ -9,10 +9,12 @@ import { EASE } from "@/lib/motion";
 export default function ProductCategory({
   product,
   index,
+  label = "Products",
   onOpen,
 }: {
   product: Product;
   index: number;
+  label?: string;
   onOpen: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -74,7 +76,7 @@ export default function ProductCategory({
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          0{index + 1} — Products
+          0{index + 1} — {label}
         </motion.span>
         <motion.h3
           className="mt-3 font-display text-3xl font-bold tracking-tight text-gray-900 md:text-4xl"
