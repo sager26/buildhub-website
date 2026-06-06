@@ -214,8 +214,8 @@ function CameraRig({
       lookX = PEDESTALS[nearest].x * 0.42;
       lookY = 0.85;
     } else {
-      // approaching the portal — keep the logo sign high & fully clear of text
-      lookY = 2.05;
+      // approaching the portal — look right at the sign so it's centred & clear
+      lookY = 2.55;
     }
 
     if (activeIdx !== lastActive.current) {
@@ -404,8 +404,8 @@ function Showroom3DInner() {
             </Suspense>
           </Canvas>
 
-          {/* top vignette for nav legibility */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-32 bg-gradient-to-b from-black/70 to-transparent" />
+          {/* top vignette for nav legibility — kept short so it never covers the sign */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-[5] h-20 bg-gradient-to-b from-black/55 to-transparent" />
           {/* bottom fade into white page */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-40 bg-gradient-to-t from-[#fafaf9] to-transparent" />
 
