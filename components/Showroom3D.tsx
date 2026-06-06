@@ -189,9 +189,14 @@ function CameraRig({
   const { camera } = useThree();
   const lookTarget = useRef(new THREE.Vector3(0, 1.4, -6));
   const lastActive = useRef(-2);
+  const smoothP = useRef(0);
 
-  useFrame((state) => {
-    const p = progressRef.current;
+  useFrame((state, dt) => {
+    // Cinematic damping: ease the camera toward the scroll target so the glide
+    // feels premium and any scroll micro-jitter is absorbed.
+    const k = 1 - Math.pow(0.0015, dt); // frame-rate-independent smoothing
+    smoothP.current = THREE.MathUtils.lerp(smoothP.current, progressRef.current, k);
+    const p = smoothP.current;
     const camZ = THREE.MathUtils.lerp(CAM_START, CAM_END, p);
     const bob = Math.sin(state.clock.elapsedTime * 0.6) * 0.04;
     camera.position.set(0, 1.15 + bob, camZ);
